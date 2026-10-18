@@ -77,10 +77,8 @@ function getActiveClient() {
 // Formata a sequência de últimos 5 jogos (ex: V-E-D-V-V) em bolinhas coloridas
 function renderFormBadges(formStr) {
     if (!formStr) return '';
-    return formStr.split('').slice(0, 5).map(ch => {
+    const items = formStr.split('').slice(0, 5).map(ch => {
         const upper = ch.toUpperCase();
-        const isWin = upper === 'V' || upper === 'W';
-        const isDraw = upper === 'E' || upper === 'D' && formStr.includes('W');
         let bg = '#ff3d57';
         let label = upper;
         if (upper === 'V' || upper === 'W') { bg = '#00e676'; label = 'V'; }
@@ -89,6 +87,7 @@ function renderFormBadges(formStr) {
         const color = bg === '#ffd600' || bg === '#00e676' ? '#06130b' : '#ffffff';
         return `<span style="display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:3px;background:${bg};color:${color};font-size:9px;font-weight:900;margin-left:2px;" title="Histórico recente">${label}</span>`;
     }).join('');
+    return `<span class="team-form-badges" style="display:inline-flex;align-items:center;margin-left:4px;">${items}</span>`;
 }
 
 // Calcula cotações matemáticas reais baseadas na campanha oficial (V-E-D) ou placar ao vivo quando a Bet365 não envia odd direta
@@ -1474,8 +1473,8 @@ function renderMatches() {
                     `;
                 }
 
-                const recBadgeA = match.recordA ? `<small style="font-size:10px; color:var(--text-muted); font-weight:600; margin-left:5px;">(${match.recordA})</small>` : '';
-                const recBadgeB = match.recordB ? `<small style="font-size:10px; color:var(--text-muted); font-weight:600; margin-left:5px;">(${match.recordB})</small>` : '';
+                const recBadgeA = match.recordA ? `<small class="team-rec-badge" style="font-size:10px; color:var(--text-muted); font-weight:600; margin-left:5px;">(${match.recordA})</small>` : '';
+                const recBadgeB = match.recordB ? `<small class="team-rec-badge" style="font-size:10px; color:var(--text-muted); font-weight:600; margin-left:5px;">(${match.recordB})</small>` : '';
 
                 const scoreAHtml = (match.isLive || match.statusState === 'post') ? `<div class="score">${match.scoreA}</div>` : '';
                 const scoreBHtml = (match.isLive || match.statusState === 'post') ? `<div class="score">${match.scoreB}</div>` : '';
@@ -1493,7 +1492,7 @@ function renderMatches() {
                                     <img src="${match.logoA}" alt="${escJs(match.teamA)}" width="23" height="23" onerror="this.style.display='none'">
                                 </div>
                                 <div class="nameTeam">
-                                    <span>${match.teamA}</span>
+                                    <span class="team-main-name">${match.teamA}</span>
                                     ${recBadgeA}
                                     ${renderFormBadges(match.formA)}
                                 </div>
@@ -1504,13 +1503,13 @@ function renderMatches() {
                                     <img src="${match.logoB}" alt="${escJs(match.teamB)}" width="23" height="23" onerror="this.style.display='none'">
                                 </div>
                                 <div class="nameTeam">
-                                    <span>${match.teamB}</span>
+                                    <span class="team-main-name">${match.teamB}</span>
                                     ${recBadgeB}
                                     ${renderFormBadges(match.formB)}
                                 </div>
                                 ${scoreBHtml}
                             </div>
-                            <div style="font-size:10.5px; color:var(--text-muted); margin-top:3px; display:flex; align-items:center; flex-wrap:wrap; gap:6px;">
+                            <div class="match-stadium-strip" style="font-size:10.5px; color:var(--text-muted); margin-top:3px; display:flex; align-items:center; flex-wrap:wrap; gap:6px;">
                                 <span>🏟️ ${match.stadium}</span>
                                 ${eventsStrip}
                             </div>
@@ -1859,6 +1858,12 @@ function setMarketCategoryFilter(cat) {
 function handleMarketSearchInput(val) {
     marketSearchQuery = val || '';
     renderMatchCenterMarkets();
+    const inp = document.getElementById('mc-market-search-input');
+    if (inp) {
+        inp.focus();
+        const len = inp.value.length;
+        try { inp.setSelectionRange(len, len); } catch (e) {}
+    }
 }
 
 function toggleMarketBlockCollapse(blockId) {
@@ -2793,9 +2798,9 @@ function renderMatchCenterMarkets() {
         return `
             <div class="mc-market-card">
                 <div class="mc-market-header" onclick="toggleMarketBlockCollapse('${block.id}')" style="cursor:pointer;">
-                    <span>${block.title} <small style="color:rgba(255,255,255,0.68); font-weight:600; margin-left:6px;">(${block.options.length} opções)</small></span>
-                    <span style="font-size:11px; color:var(--brand-gold); display:flex; align-items:center; gap:8px;">
-                        <span>${block.badge}</span>
+                    <span class="mc-market-title-txt">${block.title} <small style="color:rgba(255,255,255,0.68); font-weight:600; margin-left:4px;">(${block.options.length})</small></span>
+                    <span style="font-size:11px; color:var(--brand-gold); display:flex; align-items:center; gap:8px; flex-shrink:0;">
+                        <span class="mc-market-badge-txt">${block.badge}</span>
                         <i class="fas fa-chevron-${isCollapsed ? 'down' : 'up'}"></i>
                     </span>
                 </div>
@@ -2805,18 +2810,18 @@ function renderMatchCenterMarkets() {
     }).join('');
 
     container.innerHTML = `
-        <div style="background:rgba(59,42,111,0.38); border:1px solid var(--brand-gold); padding:10px 14px; border-radius:6px; font-size:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div class="mc-catalog-info-banner" style="background:rgba(59,42,111,0.38); border:1px solid var(--brand-gold); padding:10px 14px; border-radius:6px; font-size:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
             <span>📌 <strong>Catálogo Oficial 365 DA BARRA:</strong> <strong>${allBlocks.length} Mercados</strong> e <strong>${totalOptionsCount} Opções de Aposta</strong> disponíveis nesta partida (Regra: 1 opção por jogo).</span>
             <span style="color:var(--brand-gold); font-weight:900;">Teto Máx: R$ 30.000,00</span>
         </div>
 
         <!-- Barra de Abas de Mercados + Busca Rápida de Mercado -->
-        <div class="filter-bar" style="position:sticky; top:0; z-index:15; box-shadow:0 4px 14px rgba(0,0,0,0.35);">
+        <div class="filter-bar mc-markets-sticky-bar" style="position:sticky; top:0; z-index:15; box-shadow:0 4px 14px rgba(0,0,0,0.35);">
             <div class="filter-pills" style="flex:1;">
                 ${catPillsHtml}
             </div>
-            <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-                <input type="text" class="stake-input" style="width:190px; height:32px; font-size:12px;" placeholder="🔍 Buscar mercado/opção..." value="${escJs(marketSearchQuery)}" oninput="handleMarketSearchInput(this.value)">
+            <div class="mc-markets-search-row" style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                <input type="text" id="mc-market-search-input" class="stake-input" style="width:190px; height:32px; font-size:12px;" placeholder="🔍 Buscar mercado/opção..." value="${escJs(marketSearchQuery)}" oninput="handleMarketSearchInput(this.value)">
                 <button class="quick-stake-btn" style="flex:0; white-space:nowrap; padding:6px 10px;" onclick="expandOrCollapseAllMarkets(false)">Expandir</button>
                 <button class="quick-stake-btn" style="flex:0; white-space:nowrap; padding:6px 10px;" onclick="expandOrCollapseAllMarkets(true)">Recolher</button>
             </div>
@@ -3057,6 +3062,7 @@ function updateWalletUI() {
 
 // Abre o Modal Central do Apostador (Abas: 'profile' | 'register' | 'switch')
 function openUserAccountModal(initialTab = 'profile') {
+    closeMobilePanels();
     const modal = document.getElementById('user-account-modal');
     if (!modal) return;
     switchUserAccountTab(initialTab);
@@ -3317,6 +3323,7 @@ function placeBet(asPreTicketPinOnly = false) {
 }
 
 function openTicketReceiptModal(pin) {
+    closeMobilePanels();
     const modal = document.getElementById('ticket-receipt-modal');
     const body = document.getElementById('ticket-receipt-body');
     if (!modal || !body) return;
@@ -3397,6 +3404,7 @@ function copyTicketPin(pin) {
 }
 
 function openRequestBalanceModal() {
+    closeMobilePanels();
     const client = getActiveClient();
     const nameEl = document.getElementById('req-client-name');
     if (nameEl) nameEl.innerText = client.name;
@@ -3439,6 +3447,7 @@ function sendCustomBalanceRequest() {
 }
 
 function openAdminModal() {
+    closeMobilePanels();
     renderAdminPanel();
     document.getElementById('admin-modal').classList.add('open');
 }

@@ -2677,10 +2677,10 @@ body.theme-light .oddAndPossibleReturn .possibleReturn span strong {
 }
 
 /* ==========================================================================
-   MOBILE & TABLET RESPONSIVENESS (CELLPHONES, TABLETS, SMALL LAPTOPS)
+   RESPONSIVIDADE COMPLETA PARA CELULAR, TABLET E NOTEBOOK (365 DA BARRA MOBILE)
    ========================================================================== */
 
-/* Desktop default: hide mobile-only controls */
+/* No Desktop: oculta elementos exclusivos do modo celular/tablet */
 .mobile-menu-btn,
 .mobile-drawer-header,
 .mobile-close-slip-btn,
@@ -2689,8 +2689,30 @@ body.theme-light .oddAndPossibleReturn .possibleReturn span strong {
     display: none;
 }
 
-/* Tablet & Small Laptop (<= 1150px): Off-canvas left sidebar drawer */
-@media (max-width: 1150px) {
+/* 1. TABLETS E TELAS MÉDIAS (<= 1180px): Sidebar vira Gaveta Deslizante (Drawer) */
+@media (max-width: 1180px) {
+    .header {
+        padding: 0 12px;
+    }
+
+    .header-left {
+        gap: 10px;
+    }
+
+    .header-live-pill {
+        display: none;
+    }
+
+    .top-nav a {
+        padding: 15px 8px;
+        font-size: 12px;
+    }
+
+    .hide-xs,
+    #theme-toggle-label {
+        display: none;
+    }
+
     .main-container {
         grid-template-columns: 1fr 295px;
     }
@@ -2699,10 +2721,10 @@ body.theme-light .oddAndPossibleReturn .possibleReturn span strong {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 38px;
-        height: 38px;
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 196, 0, 0.45);
+        width: 36px;
+        height: 36px;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 196, 0, 0.55);
         border-radius: 6px;
         color: #ffc400;
         font-size: 16px;
@@ -2713,7 +2735,7 @@ body.theme-light .oddAndPossibleReturn .possibleReturn span strong {
 
     .mobile-menu-btn:hover {
         background: #ffc400;
-        color: #1a1136;
+        color: #1c1436;
     }
 
     .sidebar {
@@ -2721,15 +2743,17 @@ body.theme-light .oddAndPossibleReturn .possibleReturn span strong {
         top: 0;
         left: 0;
         bottom: 0;
-        width: 280px;
-        max-width: 85vw;
+        width: 285px;
+        max-width: 86vw;
         z-index: 2500;
         background: var(--bg-panel);
-        box-shadow: 6px 0 28px rgba(0, 0, 0, 0.65);
+        padding: 10px;
+        box-shadow: 8px 0 32px rgba(0, 0, 0, 0.75);
         transform: translateX(-105%);
         transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
         display: flex !important;
         flex-direction: column;
+        overflow-y: auto;
     }
 
     body.mobile-sidebar-open .sidebar {
@@ -2740,33 +2764,27 @@ body.theme-light .oddAndPossibleReturn .possibleReturn span strong {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 12px 14px;
+        padding: 10px 12px;
+        margin: -10px -10px 10px -10px;
         background: linear-gradient(135deg, #2d1f57 0%, #3b2a6f 100%);
         color: #ffffff;
         font-size: 13px;
         font-weight: 900;
-        letter-spacing: 0.5px;
         border-bottom: 2px solid #ffc400;
         flex-shrink: 0;
     }
 
-    .mobile-drawer-header button {
-        background: rgba(255, 255, 255, 0.14);
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        color: #ffffff;
-        width: 30px;
-        height: 30px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 14px;
+    .sidebar-logo-box img {
+        width: 120px;
+        max-height: 105px;
     }
 
     .mobile-backdrop {
         display: block;
         position: fixed;
         inset: 0;
-        background: rgba(10, 7, 22, 0.68);
-        backdrop-filter: blur(2px);
+        background: rgba(10, 7, 22, 0.72);
+        backdrop-filter: blur(3px);
         z-index: 2400;
         opacity: 0;
         pointer-events: none;
@@ -2790,7 +2808,7 @@ body.theme-light .oddAndPossibleReturn .possibleReturn span strong {
     .how-it-works-strip {
         flex-direction: column;
         align-items: flex-start;
-        gap: 10px;
+        gap: 8px;
     }
 
     .hiw-divider {
@@ -2798,116 +2816,636 @@ body.theme-light .oddAndPossibleReturn .possibleReturn span strong {
     }
 }
 
-/* Mobile & Portrait Tablet (<= 860px): Single column + Bottom-Sheet Betslip + Floating Bar */
-@media (max-width: 860px) {
+/* 2. CELULARES E TABLETS EM RETRATO (<= 880px): Layout Nativo Mobile Sportsbook */
+@media (max-width: 880px) {
+    /* Destrava rolagem nativa do celular para ocultar barra de endereço e rolar suave */
+    html,
     body {
-        height: 100dvh;
-        overflow: hidden;
+        height: auto !important;
+        min-height: 100dvh;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
     }
 
-    .top-header {
-        height: auto;
-        min-height: 58px;
-        padding: 8px 10px;
-        flex-wrap: wrap;
-        gap: 8px;
+    /* Cabeçalho Superior em 2 Linhas Limpas no Celular */
+    .header {
+        position: sticky;
+        top: 0;
+        z-index: 1200;
+        height: auto !important;
+        min-height: 54px;
+        padding: 8px 10px 0 10px !important;
+        flex-wrap: wrap !important;
+        gap: 6px;
     }
 
+    /* Desestrutura .header-left para que .top-nav desça para a Linha 2 ocupando 100% */
     .header-left {
-        width: 100%;
-        justify-content: space-between;
-        gap: 8px;
+        display: contents !important;
     }
 
-    .brand-shield-img {
+    .mobile-menu-btn {
+        order: 1;
         width: 34px;
         height: 34px;
+        font-size: 15px;
     }
 
-    .brand-text {
-        font-size: 17px;
+    .header .title {
+        order: 2;
+        margin-right: auto;
+        gap: 7px;
+        font-size: 15px;
+        min-width: 0;
     }
 
-    .brand-tag {
-        font-size: 8px;
-        padding: 2px 5px;
+    .header-mini-logo {
+        width: 28px;
+        height: 28px;
     }
 
-    .main-nav {
-        width: 100%;
+    .brand-title-text {
+        font-size: 15px;
+        margin-right: 0;
+        white-space: nowrap;
+    }
+
+    .header-live-pill {
+        display: none !important;
+    }
+
+    /* Ações do Usuário na Direita da Linha 1 */
+    .user-actions {
         order: 3;
-        overflow-x: auto;
-        padding-bottom: 2px;
-        gap: 4px;
-        scrollbar-width: none;
+        gap: 5px;
+        flex-shrink: 0;
     }
 
-    .main-nav::-webkit-scrollbar {
+    .theme-toggle-btn {
+        padding: 6px 8px;
+        font-size: 12px;
+    }
+
+    #theme-toggle-label {
+        display: none !important;
+    }
+
+    .user-profile-pill {
+        padding: 3px;
+        border-radius: 50%;
+    }
+
+    .user-profile-info {
+        display: none !important;
+    }
+
+    .user-avatar-circle {
+        width: 28px;
+        height: 28px;
+        font-size: 10.5px;
+    }
+
+    .btn-register-top {
+        padding: 6px 8px;
+        font-size: 11.5px;
+    }
+
+    .wallet-box {
+        padding: 3px 6px;
+        gap: 5px;
+    }
+
+    .wallet-label {
+        display: none !important;
+    }
+
+    .wallet-balance {
+        font-size: 12px;
+    }
+
+    .wallet-add-btn {
+        padding: 3px 6px;
+        font-size: 10.5px;
+    }
+
+    .btn-deposit {
+        padding: 6px 8px;
+        font-size: 11px;
+    }
+
+    /* Barra de Abas Principais (Linha 2 do Cabeçalho no Celular) */
+    .top-nav {
+        order: 4;
+        width: calc(100% + 20px);
+        margin: 4px -10px 0 -10px;
+        padding: 0 8px;
+        background: rgba(0, 0, 0, 0.24);
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        overflow-x: auto;
+        display: flex;
+        gap: 2px;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .top-nav::-webkit-scrollbar {
         display: none;
     }
 
-    .nav-item {
-        padding: 6px 10px;
-        font-size: 11px;
+    .top-nav a {
+        padding: 9px 10px !important;
+        font-size: 11.5px !important;
         white-space: nowrap;
         flex-shrink: 0;
     }
 
-    .header-right {
-        position: absolute;
-        top: 9px;
-        right: 10px;
-        gap: 6px;
-    }
-
-    .api-live-pill,
-    .sound-toggle-btn {
-        display: none !important;
-    }
-
-    .wallet-box {
-        padding: 4px 8px;
-        gap: 6px;
-    }
-
-    .wallet-label {
-        font-size: 8px;
-    }
-
-    .wallet-amount {
-        font-size: 12px;
-    }
-
-    .user-profile-pill {
-        padding: 4px 8px;
-    }
-
-    .upp-info {
-        display: none;
-    }
-
+    /* Container Principal 1 Coluna no Celular */
     .main-container {
-        grid-template-columns: 1fr !important;
-        height: calc(100dvh - 96px);
+        display: block !important;
+        overflow: visible !important;
+        padding: 8px 8px 86px 8px !important;
     }
 
     .content.containerBets {
-        padding: 8px 8px 82px 8px;
+        overflow: visible !important;
+        padding-right: 0 !important;
+        gap: 10px;
     }
 
-    /* Right panel becomes a slide-up bottom sheet on mobile */
+    /* Guia "Como Funciona" compacto em linha deslizante no celular */
+    .how-it-works-strip {
+        flex-direction: row !important;
+        overflow-x: auto;
+        padding: 8px 10px;
+        gap: 10px;
+        scrollbar-width: none;
+    }
+
+    .how-it-works-strip::-webkit-scrollbar {
+        display: none;
+    }
+
+    .hiw-step {
+        min-width: 195px;
+        flex-shrink: 0;
+        gap: 8px;
+    }
+
+    .hiw-step strong {
+        font-size: 11px;
+    }
+
+    .hiw-step span {
+        font-size: 10px;
+    }
+
+    /* Banners Superiores compactos no celular (oculta o 2º card secundário para priorizar os jogos) */
+    .hero-banners {
+        grid-template-columns: 1fr !important;
+        gap: 8px;
+    }
+
+    .hero-card.alt {
+        display: none !important;
+    }
+
+    .hero-card {
+        padding: 12px;
+    }
+
+    .hero-card h2 {
+        font-size: 14px;
+        line-height: 1.3;
+    }
+
+    .hero-card p {
+        font-size: 11px;
+        margin-bottom: 8px;
+    }
+
+    .hero-cta {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 8px 12px;
+    }
+
+    /* Barra de Status (Ao Vivo / Pré-Jogo) e Busca no Celular */
+    .dateEventAndSearch {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 8px;
+        gap: 8px;
+    }
+
+    .dateEventAndSearch .dateEvent {
+        width: 100%;
+    }
+
+    .dateEventAndSearch .dateEvent .boxIcon,
+    .dateEventAndSearch .dateEvent .sportName {
+        display: none;
+    }
+
+    .status-subfilters {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        width: 100%;
+        gap: 3px;
+    }
+
+    .status-subfilter-btn {
+        padding: 6px 2px;
+        font-size: 10.5px;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .dateEventAndSearch .search {
+        width: 100% !important;
+        height: 38px;
+    }
+
+    /* Pílulas de Campeonatos e Categorias em Carrossel Horizontal Deslizante (Sem empilhar 4 linhas!) */
+    .filter-bar {
+        padding: 6px 8px;
+        gap: 6px;
+    }
+
+    .filter-pills {
+        display: flex;
+        flex-wrap: nowrap !important;
+        overflow-x: auto;
+        width: 100%;
+        gap: 6px;
+        padding-bottom: 2px;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .filter-pills::-webkit-scrollbar {
+        display: none;
+    }
+
+    .filter-pill {
+        white-space: nowrap;
+        flex-shrink: 0;
+        padding: 6px 11px;
+        font-size: 11.5px;
+    }
+
+    /* Cabeçalho Roxo do Campeonato (.eventlist-country) no Celular */
+    .eventlistContainer .eventlist-country {
+        height: auto;
+        min-height: 36px;
+        padding: 6px 10px;
+    }
+
+    .eventlistContainer .eventlist-country .name {
+        font-size: 12.5px;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    /* Oculta cabeçalho "Casa / Empate / Fora" da barra roxa no celular pois cada botão já tem rótulo */
+    .eventlistContainer .eventlist-country .titleMarkets {
+        display: none !important;
+    }
+
+    /* =========================================================================
+       CARD DE PARTIDA NO CELULAR (.cardItem.cardItem3):
+       Linha 1: Horário/Ao Vivo (60px) + Times e Placar com largura total (1fr)
+       Linha 2: 3 Botões grandes de Cotações (1fr) + Botão Dourado +384 (68px)
+       ========================================================================= */
+    .eventlistContainer .containerCards .cardItem.cardItem3 {
+        display: grid !important;
+        grid-template-columns: 60px 1fr 68px !important;
+        grid-template-areas:
+            "time teams teams"
+            "odds odds more" !important;
+        gap: 8px !important;
+        padding: 10px !important;
+        min-height: auto !important;
+    }
+
+    .eventlistContainer .containerCards .cardItem .dateAndHour,
+    .eventlistContainer .containerCards .cardItem .timerLive {
+        grid-area: time;
+        padding-right: 6px;
+    }
+
+    .eventlistContainer .containerCards .cardItem .teams {
+        grid-area: teams;
+        min-width: 0;
+    }
+
+    .eventlistContainer .containerCards .cardItem .teams .team {
+        height: 24px;
+    }
+
+    .eventlistContainer .containerCards .cardItem .teams .team .nameTeam {
+        font-size: 13px;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .team-main-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* No celular, oculta bolinhas V-E-D e campanha (14-5-6) na lista para o nome do time nunca cortar */
+    .team-form-badges,
+    .team-rec-badge {
+        display: none !important;
+    }
+
+    .match-stadium-strip {
+        font-size: 10px !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block !important;
+    }
+
+    .eventlistContainer .containerCards .cardItem .outcomesMain {
+        grid-area: odds;
+    }
+
+    .eventlistContainer .containerCards .cardItem .outcomesMain .boxOdds {
+        height: 44px;
+    }
+
+    .eventlistContainer .containerCards .cardItem .totalOutcomes {
+        grid-area: more;
+    }
+
+    .eventlistContainer .containerCards .cardItem .totalOutcomes .totalOutcomes-button {
+        height: 44px;
+        font-size: 12px;
+    }
+
+    /* =========================================================================
+       MATCH CENTER (CAMPO 3D + PLACAR + 384 MERCADOS) NO CELULAR
+       ========================================================================= */
+    .mc-topbar {
+        padding: 8px 10px;
+        gap: 8px;
+    }
+
+    .back-to-list-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 8px 12px;
+    }
+
+    #mc-breadcrumb {
+        display: none;
+    }
+
+    .mc-topbar > div:last-child {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto;
+        width: 100%;
+        gap: 6px;
+        padding-bottom: 2px;
+        scrollbar-width: none;
+    }
+
+    .mc-topbar > div:last-child::-webkit-scrollbar {
+        display: none;
+    }
+
+    .tracker-ctrl-btn {
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    /* Placar da Partida em 3 Colunas Equilibradas no Celular */
+    .mc-scoreboard-banner {
+        display: grid !important;
+        grid-template-columns: 1fr auto 1fr !important;
+        align-items: center !important;
+        padding: 12px 8px !important;
+        gap: 6px !important;
+    }
+
+    .mc-team-block {
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        gap: 5px !important;
+        min-width: 0 !important;
+    }
+
+    .mc-team-block.home .mc-team-logo {
+        order: -1;
+    }
+
+    .mc-team-logo {
+        width: 36px !important;
+        height: 36px !important;
+    }
+
+    .mc-team-title {
+        font-size: 12px !important;
+        line-height: 1.2;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .mc-team-meta {
+        display: none !important;
+    }
+
+    .mc-score-center {
+        min-width: 0 !important;
+    }
+
+    .mc-live-pill {
+        font-size: 9.5px;
+        padding: 2px 8px;
+    }
+
+    .mc-score-pill {
+        font-size: 20px !important;
+        padding: 4px 12px !important;
+        letter-spacing: 1px !important;
+    }
+
+    .mc-stadium-sub {
+        font-size: 9.5px !important;
+        max-width: 135px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .mc-pitch-column {
+        padding: 8px !important;
+        border-right: none !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .pitch-broadcast-hud {
+        width: 100%;
+        padding: 6px 10px;
+        gap: 8px;
+    }
+
+    .stadium-led-board {
+        width: 96%;
+        font-size: 8.5px;
+        padding: 3px 6px;
+    }
+
+    .stadium-led-board span:nth-child(3),
+    .stadium-led-board span:nth-child(4) {
+        display: none;
+    }
+
+    .pitch-3d-wrap {
+        width: 100%;
+    }
+
+    .pitch-3d-wrap.perspective-3d {
+        transform: perspective(800px) rotateX(14deg) scale(0.99);
+    }
+
+    .tracker-tabs {
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .tracker-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .tracker-tab {
+        white-space: nowrap;
+        padding: 10px 8px;
+        font-size: 11px;
+    }
+
+    .lineups-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Barra Fixa de Categorias e Busca dos 384 Mercados no Celular */
+    .mc-markets-sticky-bar {
+        position: sticky !important;
+        top: 84px !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        padding: 8px !important;
+        gap: 6px !important;
+    }
+
+    .mc-markets-search-row {
+        width: 100%;
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        gap: 5px !important;
+    }
+
+    #mc-market-search-input {
+        flex: 1 !important;
+        width: auto !important;
+        min-width: 0 !important;
+    }
+
+    .mc-market-header {
+        height: auto !important;
+        min-height: 38px;
+        padding: 7px 10px !important;
+        font-size: 12px !important;
+        gap: 6px;
+    }
+
+    .mc-market-badge-txt {
+        display: none;
+    }
+
+    /* Grades de Cotações dos 384 Mercados Adaptadas ao Polegar no Celular */
+    .mc-market-grid-4 {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 6px !important;
+        padding: 8px !important;
+    }
+
+    .mc-market-grid-3 {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 6px !important;
+        padding: 8px !important;
+    }
+
+    .mc-market-grid-2 {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 6px !important;
+        padding: 8px !important;
+    }
+
+    .odd-btn {
+        min-width: 0 !important;
+        padding: 7px 5px !important;
+        min-height: 46px;
+    }
+
+    .odd-btn .odd-label {
+        max-width: 100% !important;
+        white-space: normal !important;
+        text-align: center;
+        line-height: 1.15;
+        font-size: 10.5px !important;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Portal de Notícias no Celular */
+    #news-featured-hero > div {
+        grid-template-columns: 1fr !important;
+    }
+
+    #news-grid-container {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Rodapé no Celular */
+    .site-footer {
+        flex-direction: column;
+        text-align: center;
+        gap: 6px;
+        padding: 12px;
+    }
+
+    .site-footer > div {
+        text-align: center !important;
+    }
+
+    /* =========================================================================
+       CADERNETA DE APOSTAS (BOTTOM SHEET) + BARRA FLUTUANTE INFERIOR NO CELULAR
+       ========================================================================= */
     .right-panel {
         position: fixed;
         left: 0;
         right: 0;
         bottom: 0;
-        height: 82dvh;
-        max-height: 82dvh;
+        height: 84dvh;
+        max-height: 84dvh;
         z-index: 2600;
         border-left: none;
         border-top: 3px solid #ffc400;
         border-radius: 16px 16px 0 0;
-        box-shadow: 0 -10px 35px rgba(0, 0, 0, 0.75);
+        box-shadow: 0 -10px 35px rgba(0, 0, 0, 0.8);
         transform: translateY(105%);
         transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
     }
@@ -2919,18 +3457,19 @@ body.theme-light .oddAndPossibleReturn .possibleReturn span strong {
     .mobile-close-slip-btn {
         display: inline-flex;
         align-items: center;
-        gap: 4px;
-        background: rgba(0, 0, 0, 0.18);
-        border: 1px solid rgba(0, 0, 0, 0.28);
-        color: #151026;
-        font-size: 11px;
-        font-weight: 800;
-        padding: 4px 9px;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        background: rgba(255, 255, 255, 0.16);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 900;
         border-radius: 5px;
         cursor: pointer;
     }
 
-    /* Floating Bottom Bar for Betslip on Mobile */
+    /* Barra Flutuante Inferior do Cupom (#mobile-betslip-fab) */
     .mobile-betslip-fab {
         display: flex;
         align-items: center;
@@ -2940,25 +3479,25 @@ body.theme-light .oddAndPossibleReturn .possibleReturn span strong {
         right: 10px;
         bottom: 10px;
         height: 54px;
-        padding: 0 14px;
+        padding: 0 12px;
         background: linear-gradient(135deg, #2d1f57 0%, #3b2a6f 100%);
         border: 2px solid #ffc400;
         border-radius: 12px;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.65);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.75);
         z-index: 2300;
         cursor: pointer;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
-    .mobile-betslip-fab.has-selections {
-        background: linear-gradient(135deg, #C9302C 0%, #9f1f1c 100%);
+    .mobile-betslip-fab.has-items {
+        background: linear-gradient(135deg, #C9302C 0%, #961d1a 100%);
         border-color: #ffc400;
     }
 
     .mbf-left {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 9px;
+        min-width: 0;
     }
 
     .mbf-badge {
@@ -2975,127 +3514,100 @@ body.theme-light .oddAndPossibleReturn .possibleReturn span strong {
         flex-shrink: 0;
     }
 
-    .mbf-text {
+    .mbf-left > div {
         display: flex;
         flex-direction: column;
         line-height: 1.15;
+        min-width: 0;
     }
 
-    .mbf-title {
-        font-size: 12px;
+    .mbf-left strong {
+        font-size: 12.5px;
         font-weight: 900;
         color: #ffffff;
-        letter-spacing: 0.4px;
     }
 
-    .mbf-sub {
-        font-size: 10px;
-        color: rgba(255, 255, 255, 0.82);
-        font-weight: 600;
+    #mbf-sub {
+        font-size: 10.5px;
+        color: rgba(255, 255, 255, 0.85);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .mbf-right {
         display: flex;
         align-items: center;
-        gap: 8px;
-        background: rgba(0, 0, 0, 0.28);
-        padding: 6px 10px;
+        gap: 6px;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 6px 9px;
         border-radius: 8px;
+        flex-shrink: 0;
+    }
+
+    .mbf-odd {
         color: #ffc400;
         font-weight: 900;
-        font-size: 13px;
+        font-size: 12px;
         font-family: 'JetBrains Mono', monospace;
     }
 
-    /* Match Cards (.cardItem3): stack match info on top and 1X2 odds below on mobile */
-    .cardHeader3 .header-odds-labels {
-        display: none;
+    .mbf-btn {
+        color: #ffffff;
+        font-size: 10.5px;
+        font-weight: 800;
+        background: rgba(255, 255, 255, 0.14);
+        padding: 2px 6px;
+        border-radius: 4px;
     }
 
-    .cardItem3 {
-        flex-direction: column;
-        align-items: stretch;
-        padding: 10px;
-        gap: 8px;
-    }
-
-    .cardItem3-left {
-        width: 100%;
-        padding-right: 0;
-    }
-
-    .cardItem3-odds {
-        width: 100%;
-        justify-content: space-between;
-        gap: 6px;
-    }
-
-    .cardItem3-odds .odd-btn {
-        flex: 1;
-        min-width: 0;
-        height: 42px;
-    }
-
-    .cardItem3-odds .more-markets-btn {
-        min-width: 58px;
-        height: 42px;
-    }
-
-    /* Match Center header & markets bar on mobile */
-    .mc-scoreboard-banner {
-        padding: 12px 10px;
-    }
-
-    .mc-team-name {
-        font-size: 13px;
-    }
-
-    .mc-score-box {
-        font-size: 22px;
-        padding: 4px 10px;
-    }
-
-    .mc-markets-toolbar {
-        flex-direction: column;
-        align-items: stretch !important;
-    }
-
-    .mc-market-options-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-    }
-
-    .form-grid-2 {
-        grid-template-columns: 1fr;
+    /* Modais Responsivos no Celular */
+    .modal-overlay {
+        padding: 8px !important;
+        align-items: flex-end !important;
     }
 
     .modal-card {
-        width: 95vw !important;
-        max-height: 90dvh;
-        margin: 10px;
-    }
-}
-
-/* Small Smartphones (<= 440px) */
-@media (max-width: 440px) {
-    .brand-text {
-        font-size: 15px;
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: 90dvh !important;
+        padding: 14px !important;
+        border-radius: 14px 14px 8px 8px !important;
+        margin: 0 !important;
     }
 
-    .brand-tag {
-        display: none;
+    .account-modal-tabs {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 4px;
     }
 
-    .mc-market-options-grid {
+    .account-tab-btn {
+        font-size: 11px;
+        padding: 8px 4px;
+    }
+
+    .admin-kpi-strip,
+    .form-grid-2 {
         grid-template-columns: 1fr !important;
-    }
-
-    .hero-banner-card {
-        padding: 12px;
-    }
-
-    .hb-title {
-        font-size: 16px;
+        gap: 8px !important;
     }
 }
+
+/* 3. TELAS DE CELULAR MUITO COMPACTAS (<= 400px) */
+@media (max-width: 400px) {
+    .brand-title-text {
+        font-size: 13.5px;
+    }
+
+    .btn-register-top {
+        display: none; /* O acesso ao Cadastro continua no avatar DM, Menu Lateral e Cupom */
+    }
+
+    .eventlistContainer .containerCards .cardItem.cardItem3 {
+        grid-template-columns: 54px 1fr 62px !important;
+        padding: 8px !important;
+    }
+}
+
 
 
