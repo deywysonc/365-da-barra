@@ -2676,13 +2676,426 @@ body.theme-light .oddAndPossibleReturn .possibleReturn span strong {
     letter-spacing: 0.3px;
 }
 
-@media (max-width: 1200px) {
-    .main-container { grid-template-columns: 1fr 295px; }
-    .sidebar { display: none; }
-    .mc-arena-grid { grid-template-columns: 1fr; }
-    .hero-banners { grid-template-columns: 1fr; }
-    .how-it-works-strip { flex-direction: column; align-items: flex-start; }
-    .hiw-divider { display: none; }
-    .form-grid-2 { grid-template-columns: 1fr; }
+/* ==========================================================================
+   MOBILE & TABLET RESPONSIVENESS (CELLPHONES, TABLETS, SMALL LAPTOPS)
+   ========================================================================== */
+
+/* Desktop default: hide mobile-only controls */
+.mobile-menu-btn,
+.mobile-drawer-header,
+.mobile-close-slip-btn,
+.mobile-backdrop,
+.mobile-betslip-fab {
+    display: none;
 }
+
+/* Tablet & Small Laptop (<= 1150px): Off-canvas left sidebar drawer */
+@media (max-width: 1150px) {
+    .main-container {
+        grid-template-columns: 1fr 295px;
+    }
+
+    .mobile-menu-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 196, 0, 0.45);
+        border-radius: 6px;
+        color: #ffc400;
+        font-size: 16px;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: all 0.2s;
+    }
+
+    .mobile-menu-btn:hover {
+        background: #ffc400;
+        color: #1a1136;
+    }
+
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 280px;
+        max-width: 85vw;
+        z-index: 2500;
+        background: var(--bg-panel);
+        box-shadow: 6px 0 28px rgba(0, 0, 0, 0.65);
+        transform: translateX(-105%);
+        transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+        display: flex !important;
+        flex-direction: column;
+    }
+
+    body.mobile-sidebar-open .sidebar {
+        transform: translateX(0);
+    }
+
+    .mobile-drawer-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 14px;
+        background: linear-gradient(135deg, #2d1f57 0%, #3b2a6f 100%);
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 900;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #ffc400;
+        flex-shrink: 0;
+    }
+
+    .mobile-drawer-header button {
+        background: rgba(255, 255, 255, 0.14);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        color: #ffffff;
+        width: 30px;
+        height: 30px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .mobile-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(10, 7, 22, 0.68);
+        backdrop-filter: blur(2px);
+        z-index: 2400;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.24s ease;
+    }
+
+    body.mobile-sidebar-open .mobile-backdrop,
+    body.mobile-betslip-open .mobile-backdrop {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .mc-arena-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .hero-banners {
+        grid-template-columns: 1fr;
+    }
+
+    .how-it-works-strip {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .hiw-divider {
+        display: none;
+    }
+}
+
+/* Mobile & Portrait Tablet (<= 860px): Single column + Bottom-Sheet Betslip + Floating Bar */
+@media (max-width: 860px) {
+    body {
+        height: 100dvh;
+        overflow: hidden;
+    }
+
+    .top-header {
+        height: auto;
+        min-height: 58px;
+        padding: 8px 10px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .header-left {
+        width: 100%;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .brand-shield-img {
+        width: 34px;
+        height: 34px;
+    }
+
+    .brand-text {
+        font-size: 17px;
+    }
+
+    .brand-tag {
+        font-size: 8px;
+        padding: 2px 5px;
+    }
+
+    .main-nav {
+        width: 100%;
+        order: 3;
+        overflow-x: auto;
+        padding-bottom: 2px;
+        gap: 4px;
+        scrollbar-width: none;
+    }
+
+    .main-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .nav-item {
+        padding: 6px 10px;
+        font-size: 11px;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .header-right {
+        position: absolute;
+        top: 9px;
+        right: 10px;
+        gap: 6px;
+    }
+
+    .api-live-pill,
+    .sound-toggle-btn {
+        display: none !important;
+    }
+
+    .wallet-box {
+        padding: 4px 8px;
+        gap: 6px;
+    }
+
+    .wallet-label {
+        font-size: 8px;
+    }
+
+    .wallet-amount {
+        font-size: 12px;
+    }
+
+    .user-profile-pill {
+        padding: 4px 8px;
+    }
+
+    .upp-info {
+        display: none;
+    }
+
+    .main-container {
+        grid-template-columns: 1fr !important;
+        height: calc(100dvh - 96px);
+    }
+
+    .content.containerBets {
+        padding: 8px 8px 82px 8px;
+    }
+
+    /* Right panel becomes a slide-up bottom sheet on mobile */
+    .right-panel {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 82dvh;
+        max-height: 82dvh;
+        z-index: 2600;
+        border-left: none;
+        border-top: 3px solid #ffc400;
+        border-radius: 16px 16px 0 0;
+        box-shadow: 0 -10px 35px rgba(0, 0, 0, 0.75);
+        transform: translateY(105%);
+        transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    body.mobile-betslip-open .right-panel {
+        transform: translateY(0);
+    }
+
+    .mobile-close-slip-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: rgba(0, 0, 0, 0.18);
+        border: 1px solid rgba(0, 0, 0, 0.28);
+        color: #151026;
+        font-size: 11px;
+        font-weight: 800;
+        padding: 4px 9px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    /* Floating Bottom Bar for Betslip on Mobile */
+    .mobile-betslip-fab {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: fixed;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        height: 54px;
+        padding: 0 14px;
+        background: linear-gradient(135deg, #2d1f57 0%, #3b2a6f 100%);
+        border: 2px solid #ffc400;
+        border-radius: 12px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.65);
+        z-index: 2300;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .mobile-betslip-fab.has-selections {
+        background: linear-gradient(135deg, #C9302C 0%, #9f1f1c 100%);
+        border-color: #ffc400;
+    }
+
+    .mbf-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .mbf-badge {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        background: #ffc400;
+        color: #151026;
+        font-weight: 900;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .mbf-text {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.15;
+    }
+
+    .mbf-title {
+        font-size: 12px;
+        font-weight: 900;
+        color: #ffffff;
+        letter-spacing: 0.4px;
+    }
+
+    .mbf-sub {
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.82);
+        font-weight: 600;
+    }
+
+    .mbf-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(0, 0, 0, 0.28);
+        padding: 6px 10px;
+        border-radius: 8px;
+        color: #ffc400;
+        font-weight: 900;
+        font-size: 13px;
+        font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Match Cards (.cardItem3): stack match info on top and 1X2 odds below on mobile */
+    .cardHeader3 .header-odds-labels {
+        display: none;
+    }
+
+    .cardItem3 {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 10px;
+        gap: 8px;
+    }
+
+    .cardItem3-left {
+        width: 100%;
+        padding-right: 0;
+    }
+
+    .cardItem3-odds {
+        width: 100%;
+        justify-content: space-between;
+        gap: 6px;
+    }
+
+    .cardItem3-odds .odd-btn {
+        flex: 1;
+        min-width: 0;
+        height: 42px;
+    }
+
+    .cardItem3-odds .more-markets-btn {
+        min-width: 58px;
+        height: 42px;
+    }
+
+    /* Match Center header & markets bar on mobile */
+    .mc-scoreboard-banner {
+        padding: 12px 10px;
+    }
+
+    .mc-team-name {
+        font-size: 13px;
+    }
+
+    .mc-score-box {
+        font-size: 22px;
+        padding: 4px 10px;
+    }
+
+    .mc-markets-toolbar {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+
+    .mc-market-options-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    .form-grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-card {
+        width: 95vw !important;
+        max-height: 90dvh;
+        margin: 10px;
+    }
+}
+
+/* Small Smartphones (<= 440px) */
+@media (max-width: 440px) {
+    .brand-text {
+        font-size: 15px;
+    }
+
+    .brand-tag {
+        display: none;
+    }
+
+    .mc-market-options-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .hero-banner-card {
+        padding: 12px;
+    }
+
+    .hb-title {
+        font-size: 16px;
+    }
+}
+
 

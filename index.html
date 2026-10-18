@@ -14,6 +14,9 @@
     <!-- CABEÇALHO SUPERIOR OFICIAL 365 DA BARRA (#3b2a6f) -->
     <header class="header">
         <div class="header-left">
+            <button class="mobile-menu-btn" onclick="toggleMobileSidebar()" title="Abrir Menu de Campeonatos">
+                <i class="fas fa-bars"></i>
+            </button>
             <div class="title" onclick="switchMainSection('matches'); filterMatches('all')" style="cursor:pointer;">
                 <img src="logo-365dabarra.png" alt="365 DA BARRA" class="header-mini-logo">
                 <div>
@@ -46,7 +49,7 @@
 
             <!-- Botão Direto para Cadastrar Novo Usuário -->
             <button class="btn-register-top" onclick="openUserAccountModal('register')" title="Cadastrar Novo Apostador na 365 DA BARRA">
-                <i class="fas fa-user-plus"></i> Cadastrar
+                <i class="fas fa-user-plus"></i> <span class="hide-xs">Cadastrar</span>
             </button>
 
             <!-- Carteira com Saldo Liberado pelo Admin + Botão Pedir Saldo -->
@@ -56,24 +59,31 @@
                     <span class="wallet-balance" id="user-balance">R$ 450,00</span>
                 </div>
                 <button class="wallet-add-btn" onclick="openRequestBalanceModal()" title="Solicitar Liberação de Saldo ao Admin">
-                    <i class="fas fa-plus"></i> Pedir Saldo
+                    <i class="fas fa-plus"></i> <span class="hide-xs">Pedir Saldo</span>
                 </button>
             </div>
 
             <!-- Botão Painel do Admin / Cambista -->
             <button class="btn-deposit" onclick="openAdminModal()">
-                <i class="fas fa-user-shield"></i> Admin <span class="admin-badge-pill" id="admin-alert-count">0</span>
+                <i class="fas fa-user-shield"></i> <span class="hide-xs">Admin</span> <span class="admin-badge-pill" id="admin-alert-count">0</span>
             </button>
         </div>
     </header>
+
+    <!-- Backdrop Mobile para Menu Lateral e Cupom -->
+    <div id="mobile-backdrop" class="mobile-backdrop" onclick="closeMobilePanels()"></div>
 
     <!-- ESTRUTURA PRINCIPAL 3 COLUNAS (PADRÃO 365 DA BARRA APRIMORADO) -->
     <div class="main-container">
 
         <!-- COLUNA ESQUERDA: SIDEBAR OFICIAL COM ESCUDO 365 DA BARRA E ACORDEÕES -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="main-sidebar">
+            <div class="mobile-drawer-header">
+                <strong>🏆 Menu • 365 DA BARRA</strong>
+                <button class="modal-close" onclick="closeMobilePanels()">✕</button>
+            </div>
             <!-- Escudo Oficial 365 DA BARRA -->
-            <div id="divImageLogo" class="sidebar-logo-box" onclick="switchMainSection('matches'); filterMatches('all')">
+            <div id="divImageLogo" class="sidebar-logo-box" onclick="switchMainSection('matches'); filterMatches('all'); closeMobilePanels();">
                 <img id="imgLogo" src="logo-365dabarra.png" alt="365 DA BARRA">
             </div>
 
@@ -577,7 +587,7 @@
         </main>
 
         <!-- COLUNA DIREITA: CUPOM DE APOSTAS OFICIAL 365 DA BARRA -->
-        <aside class="right-panel">
+        <aside class="right-panel" id="main-betslip-panel">
             <div class="betslip">
                 <div class="betslip-header">
                     <div class="betslip-tabs">
@@ -588,7 +598,10 @@
                             <i class="fas fa-ticket-alt"></i> Bilhetes / PIN <span class="betslip-count" id="history-count">0</span>
                         </div>
                     </div>
-                    <button class="clear-slip-btn" onclick="clearBetslip()" title="Limpar todas as seleções do cupom"><i class="fas fa-trash-alt"></i></button>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <button class="clear-slip-btn" onclick="clearBetslip()" title="Limpar todas as seleções do cupom"><i class="fas fa-trash-alt"></i></button>
+                        <button class="mobile-close-slip-btn" onclick="closeMobilePanels()" title="Fechar Cupom">✕</button>
+                    </div>
                 </div>
 
                 <!-- Barra do Apostador no Cupom (Mostra quem está apostando e permite trocar ou cadastrar) -->
@@ -648,6 +661,21 @@
                 </div>
             </div>
         </aside>
+    </div>
+
+    <!-- BARRA FLUTUANTE INFERIOR DO CUPOM PARA CELULAR E TABLET -->
+    <div id="mobile-betslip-fab" class="mobile-betslip-fab" onclick="toggleMobileBetslip()">
+        <div class="mbf-left">
+            <span class="mbf-badge" id="mbf-count">0</span>
+            <div>
+                <strong>Cupom de Apostas</strong>
+                <span id="mbf-sub">Toque nas cotações para apostar</span>
+            </div>
+        </div>
+        <div class="mbf-right">
+            <span class="mbf-odd" id="mbf-odd">Odd 1,00</span>
+            <span class="mbf-btn">Abrir ▲</span>
+        </div>
     </div>
 
     <!-- =========================================================================

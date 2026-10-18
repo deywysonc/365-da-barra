@@ -5,7 +5,10 @@
 let isMatchCenterOpen = false;
 let realPlayCycleIdx = 0;
 let matchStatusSubfilter = 'all'; // 'all', 'in', 'pre', 'post'
+let activeMarketCategory = 'all'; // 'all', 'principais', 'gols', 'tempos', 'placar', 'escanteios', 'cartoes', 'handicap', 'jogadores'
+let marketSearchQuery = '';
 const collapsedLeagues = new Set();
+const collapsedMarketBlocks = new Set();
 
 function escJs(str) {
     return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
@@ -21,6 +24,21 @@ function toggleSiteTheme() {
     const labelEl = document.getElementById('theme-toggle-label');
     if (iconEl) iconEl.className = isLight ? 'fas fa-moon' : 'fas fa-sun';
     if (labelEl) labelEl.innerText = isLight ? 'Tema Escuro' : 'Tema Claro';
+}
+
+function toggleMobileSidebar() {
+    document.body.classList.remove('mobile-betslip-open');
+    document.body.classList.toggle('mobile-sidebar-open');
+}
+
+function toggleMobileBetslip() {
+    document.body.classList.remove('mobile-sidebar-open');
+    document.body.classList.toggle('mobile-betslip-open');
+}
+
+function closeMobilePanels() {
+    document.body.classList.remove('mobile-sidebar-open');
+    document.body.classList.remove('mobile-betslip-open');
 }
 
 function toggleSidebarAccordion(itemsId, headerEl) {
@@ -352,7 +370,7 @@ async function syncRealTimeApi(leagueSlug = 'all', silent = false) {
                         timeLabel,
                         kickoffTimeStr,
                         kickoffDateShort,
-                        totalMarketsCount: 284,
+                        totalMarketsCount: 384,
                         oddsLocked: false,
                         odds: { '1': odd1, 'X': oddX, '2': odd2 },
                         oddTrend: { '1': 'none', 'X': 'none', '2': 'none' },
@@ -1035,6 +1053,7 @@ function syncNavigationActiveStates() {
 function switchMainSection(section) {
     window.BetProData.currentView = section;
     isMatchCenterOpen = (section === 'match-center');
+    closeMobilePanels();
 
     document.getElementById('home-matches-view').style.display = section === 'matches' ? 'flex' : 'none';
     document.getElementById('match-center-view').classList.toggle('active', section === 'match-center');
@@ -1049,6 +1068,7 @@ function switchMainSection(section) {
 
 function filterMatches(category, pillEl = null) {
     window.BetProData.currentFilter = category;
+    closeMobilePanels();
     if (category === 'live') {
         matchStatusSubfilter = 'all';
         document.querySelectorAll('#status-subfilters .status-subfilter-btn').forEach(b => {
@@ -1099,6 +1119,8 @@ function handleSearchMatches(val) {
 function openMatchCenter(matchId) {
     window.BetProData.selectedMatchId = Number(matchId);
     realPlayCycleIdx = 0;
+    activeMarketCategory = 'all';
+    marketSearchQuery = '';
     switchMainSection('match-center');
 
     const m = window.BetProData.matches.find(x => x.id === Number(matchId));
@@ -1109,6 +1131,9 @@ function openMatchCenter(matchId) {
     updateScoreboardHeader();
     renderTrackerTabContent();
     renderMatchCenterMarkets();
+    const containerBets = document.querySelector('.content.containerBets');
+    if (containerBets) containerBets.scrollTop = 0;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function backToMatchList() {
@@ -1507,8 +1532,8 @@ function renderMatches() {
                             </div>
                         </div>
                         <div class="totalOutcomes">
-                            <a class="totalOutcomes-button" onclick="event.stopPropagation(); openMatchCenter(${match.id})" title="Abrir Campo 3D Ao Vivo, Escalações e +284 Mercados">
-                                <span>+${match.totalMarketsCount || 284}</span>
+                            <a class="totalOutcomes-button" onclick="event.stopPropagation(); openMatchCenter(${match.id})" title="Abrir Campo 3D Ao Vivo, Escalações e +384 Opções de Aposta">
+                                <span>+${match.totalMarketsCount || 384}</span>
                                 <small style="font-size:9px; font-weight:900;">🏟️ 3D / +Odds</small>
                             </a>
                         </div>
@@ -1824,41 +1849,54 @@ function renderTrackerTabContent() {
 }
 
 // =====================================================
-// 6. MERCADOS COMPLETOS DA PARTIDA (COM NOMES REAIS DOS JOGADORES)
+// 6. CATÁLOGO COMPLETO DE +380 OPÇÕES E 45 MERCADOS DA PARTIDA
 // =====================================================
-function renderMatchCenterMarkets() {
+function setMarketCategoryFilter(cat) {
+    activeMarketCategory = cat;
+    renderMatchCenterMarkets();
+}
+
+function handleMarketSearchInput(val) {
+    marketSearchQuery = val || '';
+    renderMatchCenterMarkets();
+}
+
+function toggleMarketBlockCollapse(blockId) {
+    if (collapsedMarketBlocks.has(blockId)) {
+        collapsedMarketBlocks.delete(blockId);
+    } else {
+        collapsedMarketBlocks.add(blockId);
+    }
+    renderMatchCenterMarkets();
+}
+
+function expandOrCollapseAllMarkets(collapseAll) {
     const match = window.BetProData.matches.find(x => x.id === window.BetProData.selectedMatchId);
     if (!match) return;
+    const blocks = buildFullMatchMarketsCatalog(match);
+    if (collapseAll) {
+        blocks.forEach(b => collapsedMarketBlocks.add(b.id));
+    } else {
+        collapsedMarketBlocks.clear();
+    }
+    renderMatchCenterMarkets();
+}
 
-    const container = document.getElementById('mc-all-markets');
-    if (!container) return;
+function buildFullMatchMarketsCatalog(match) {
+    const o1 = Number(match.odds['1']) || 2.10;
+    const oX = Number(match.odds['X']) || 3.25;
+    const o2 = Number(match.odds['2']) || 3.40;
+    const sA = Number(match.scoreA) || 0;
+    const sB = Number(match.scoreB) || 0;
+    const totG = sA + sB;
 
-    const sel1Label = `${match.teamA} (Casa)`;
-    const selXLabel = 'Empate (X)';
-    const sel2Label = `${match.teamB} (Fora)`;
-
-    const sel1 = isBetSelected(match.id, sel1Label);
-    const selX = isBetSelected(match.id, selXLabel);
-    const sel2 = isBetSelected(match.id, sel2Label);
-
-    const overLabel = `Mais (${match.markets.overUnder.label})`;
-    const underLabel = `Menos (${match.markets.overUnder.label})`;
-    const selOver = isBetSelected(match.id, overLabel);
-    const selUnder = isBetSelected(match.id, underLabel);
-
-    const selBttsYes = isBetSelected(match.id, 'Ambos Marcam: Sim');
-    const selBttsNo = isBetSelected(match.id, 'Ambos Marcam: Não');
-
-    const cornOverLabel = `Mais (${match.markets.corners.label})`;
-    const cornUnderLabel = `Menos (${match.markets.corners.label})`;
-    const selCornOver = isBetSelected(match.id, cornOverLabel);
-    const selCornUnder = isBetSelected(match.id, cornUnderLabel);
+    const clampOdd = (v, min = 1.04, max = 150) => +(Math.min(max, Math.max(min, Number(v) || 1.85))).toFixed(2);
 
     // Extrai nomes reais dos jogadores escalados ou artilheiros da temporada
-    const getRealPlayerName = (playersArr, teamLeaders, idx, fallback) => {
+    const getRealPlayer = (playersArr, teamLeaders, idx, fallback) => {
         if (Array.isArray(playersArr) && playersArr.length > idx) {
             const p = playersArr[playersArr.length - 1 - idx] || playersArr[idx];
-            if (p && typeof p === 'object') return `${p.jersey}. ${p.name}`;
+            if (p && typeof p === 'object') return `${p.jersey ? p.jersey + '. ' : ''}${p.name}`;
             if (typeof p === 'string') return p;
         }
         if (Array.isArray(teamLeaders) && teamLeaders[idx]) {
@@ -1867,185 +1905,928 @@ function renderMatchCenterMarkets() {
         return fallback;
     };
 
-    const starA = getRealPlayerName(match.playersA, match.seasonLeaders, 0, `Atacante (${match.shortA})`);
-    const starA2 = getRealPlayerName(match.playersA, match.seasonLeaders, 1, `Meia (${match.shortA})`);
-    const starB = getRealPlayerName(match.playersB, match.seasonLeaders, 0, `Atacante (${match.shortB})`);
-    const starB2 = getRealPlayerName(match.playersB, match.seasonLeaders, 1, `Meia (${match.shortB})`);
+    const pA1 = getRealPlayer(match.playersA, match.seasonLeaders, 0, `Camisa 9 (${match.shortA})`);
+    const pA2 = getRealPlayer(match.playersA, match.seasonLeaders, 1, `Camisa 10 (${match.shortA})`);
+    const pA3 = getRealPlayer(match.playersA, match.seasonLeaders, 2, `Camisa 7 (${match.shortA})`);
+    const pA4 = getRealPlayer(match.playersA, match.seasonLeaders, 3, `Camisa 11 (${match.shortA})`);
 
-    const nextGoalHomeLabel = `Próx. Gol: ${match.teamA}`;
-    const nextGoalAwayLabel = `Próx. Gol: ${match.teamB}`;
-    const dc1XLabel = `${match.shortA} ou Empate (1X)`;
-    const dc12Label = `${match.shortA} ou ${match.shortB} (12)`;
-    const dcX2Label = `Empate ou ${match.shortB} (X2)`;
+    const pB1 = getRealPlayer(match.playersB, match.seasonLeaders, 0, `Camisa 9 (${match.shortB})`);
+    const pB2 = getRealPlayer(match.playersB, match.seasonLeaders, 1, `Camisa 10 (${match.shortB})`);
+    const pB3 = getRealPlayer(match.playersB, match.seasonLeaders, 2, `Camisa 7 (${match.shortB})`);
+    const pB4 = getRealPlayer(match.playersB, match.seasonLeaders, 3, `Camisa 11 (${match.shortB})`);
+
+    const dc1X = clampOdd(1 / ((1 / o1) + (1 / oX)) * 0.95, 1.06, 4.50);
+    const dc12 = clampOdd(1 / ((1 / o1) + (1 / o2)) * 0.95, 1.08, 3.80);
+    const dcX2 = clampOdd(1 / ((1 / oX) + (1 / o2)) * 0.95, 1.06, 4.80);
+
+    const dnb1 = clampOdd(o1 * 0.72, 1.12, 8.50);
+    const dnb2 = clampOdd(o2 * 0.72, 1.12, 9.50);
+
+    const bttsYes = match.markets && match.markets.btts ? match.markets.btts.yes : 1.78;
+    const bttsNo = match.markets && match.markets.btts ? match.markets.btts.no : 1.98;
+
+    const blocks = [
+        // ==================== 1. PRINCIPAIS (10 Mercados) ====================
+        {
+            id: 'm_1x2',
+            cat: 'principais',
+            title: '⚽ Vencedor do Encontro (1x2 - Tempo Regulamentar 90\')',
+            badge: match.oddsProvider || 'Bet365 Oficial',
+            cols: 3,
+            options: [
+                { label: `${match.teamA} (Casa)`, odd: o1 },
+                { label: 'Empate (X)', odd: oX },
+                { label: `${match.teamB} (Fora)`, odd: o2 }
+            ]
+        },
+        {
+            id: 'm_dc',
+            cat: 'principais',
+            title: '🛡️ Dupla Hipótese (Dupla Chance)',
+            badge: 'Tempo Regulamentar',
+            cols: 3,
+            options: [
+                { label: `${match.shortA} ou Empate (1X)`, odd: dc1X },
+                { label: `${match.shortA} ou ${match.shortB} (12)`, odd: dc12 },
+                { label: `Empate ou ${match.shortB} (X2)`, odd: dcX2 }
+            ]
+        },
+        {
+            id: 'm_dnb',
+            cat: 'principais',
+            title: '🤝 Empate Anula a Aposta (Draw No Bet)',
+            badge: 'Reembolso no Empate',
+            cols: 2,
+            options: [
+                { label: `Empate Anula: ${match.teamA}`, odd: dnb1 },
+                { label: `Empate Anula: ${match.teamB}`, odd: dnb2 }
+            ]
+        },
+        {
+            id: 'm_btts',
+            cat: 'principais',
+            title: '🥅 Ambos os Times Marcam (BTTS)',
+            badge: '90 Minutos',
+            cols: 2,
+            options: [
+                { label: 'Ambos Marcam: Sim', odd: bttsYes },
+                { label: 'Ambos Marcam: Não', odd: bttsNo }
+            ]
+        },
+        {
+            id: 'm_next_goal',
+            cat: 'principais',
+            title: `🔥 Próximo Time a Marcar (${totG + 1}º Gol da Partida)`,
+            badge: 'Tempo Real',
+            cols: 3,
+            options: [
+                { label: `Próx. Gol: ${match.teamA}`, odd: clampOdd(o1 * 0.78, 1.35) },
+                { label: 'Sem Mais Gols', odd: clampOdd(7.50 - totG * 1.05, 2.40) },
+                { label: `Próx. Gol: ${match.teamB}`, odd: clampOdd(o2 * 0.78, 1.45) }
+            ]
+        },
+        {
+            id: 'm_1x2_btts',
+            cat: 'principais',
+            title: '⚡ Resultado Final + Ambos os Times Marcam',
+            badge: 'Combo Especial',
+            cols: 3,
+            options: [
+                { label: `${match.shortA} Vence & Ambos: Sim`, odd: clampOdd(o1 * 1.95, 2.60) },
+                { label: `Empate & Ambos: Sim`, odd: clampOdd(oX * 1.38, 4.10) },
+                { label: `${match.shortB} Vence & Ambos: Sim`, odd: clampOdd(o2 * 2.05, 2.90) },
+                { label: `${match.shortA} Vence & Ambos: Não`, odd: clampOdd(o1 * 1.55, 2.15) },
+                { label: `Empate (0x0) & Ambos: Não`, odd: clampOdd(oX * 2.45, 6.50) },
+                { label: `${match.shortB} Vence & Ambos: Não`, odd: clampOdd(o2 * 1.62, 2.35) }
+            ]
+        },
+        {
+            id: 'm_1x2_ou25',
+            cat: 'principais',
+            title: '🎯 Resultado Final + Total de Gols (2.5)',
+            badge: 'Combo Gols',
+            cols: 3,
+            options: [
+                { label: `${match.shortA} & Mais de 2.5 Gols`, odd: clampOdd(o1 * 1.68, 2.10) },
+                { label: `Empate & Mais de 2.5 Gols`, odd: clampOdd(oX * 3.10, 8.50) },
+                { label: `${match.shortB} & Mais de 2.5 Gols`, odd: clampOdd(o2 * 1.75, 2.30) },
+                { label: `${match.shortA} & Menos de 2.5 Gols`, odd: clampOdd(o1 * 1.92, 2.50) },
+                { label: `Empate & Menos de 2.5 Gols`, odd: clampOdd(oX * 1.32, 3.60) },
+                { label: `${match.shortB} & Menos de 2.5 Gols`, odd: clampOdd(o2 * 1.98, 2.75) }
+            ]
+        },
+        {
+            id: 'm_dc_btts',
+            cat: 'principais',
+            title: '🛡️ Dupla Hipótese + Ambos os Times Marcam',
+            badge: 'Dupla + BTTS',
+            cols: 3,
+            options: [
+                { label: `1X & Ambos Marcam: Sim`, odd: clampOdd(dc1X * 1.82, 1.95) },
+                { label: `12 & Ambos Marcam: Sim`, odd: clampOdd(dc12 * 1.90, 2.05) },
+                { label: `X2 & Ambos Marcam: Sim`, odd: clampOdd(dcX2 * 1.88, 2.05) },
+                { label: `1X & Ambos Marcam: Não`, odd: clampOdd(dc1X * 1.65, 1.85) },
+                { label: `12 & Ambos Marcam: Não`, odd: clampOdd(dc12 * 1.58, 1.78) },
+                { label: `X2 & Ambos Marcam: Não`, odd: clampOdd(dcX2 * 1.72, 1.92) }
+            ]
+        },
+        {
+            id: 'm_win_margin',
+            cat: 'principais',
+            title: '📏 Margem de Vitória (90 Minutos)',
+            badge: 'Diferença de Gols',
+            cols: 4,
+            options: [
+                { label: `${match.shortA} por 1 Gol`, odd: clampOdd(o1 * 1.75, 3.10) },
+                { label: `${match.shortA} por 2 Gols`, odd: clampOdd(o1 * 2.55, 4.80) },
+                { label: `${match.shortA} por 3+ Gols`, odd: clampOdd(o1 * 4.20, 7.50) },
+                { label: 'Empate com Gols', odd: clampOdd(oX * 1.38, 4.20) },
+                { label: `${match.shortB} por 1 Gol`, odd: clampOdd(o2 * 1.80, 3.40) },
+                { label: `${match.shortB} por 2 Gols`, odd: clampOdd(o2 * 2.75, 5.40) },
+                { label: `${match.shortB} por 3+ Gols`, odd: clampOdd(o2 * 4.60, 8.80) },
+                { label: 'Placar 0 x 0', odd: clampOdd(oX * 2.40, 6.80) }
+            ]
+        },
+        {
+            id: 'm_win_either_half',
+            cat: 'principais',
+            title: '🏆 Equipe Vence pelo Menos Um dos Tempos',
+            badge: 'Especial Equipes',
+            cols: 4,
+            options: [
+                { label: `${match.shortA} Vence 1T ou 2T: Sim`, odd: clampOdd(o1 * 0.72, 1.38) },
+                { label: `${match.shortA} Vence 1T ou 2T: Não`, odd: clampOdd(2.65, 1.70) },
+                { label: `${match.shortB} Vence 1T ou 2T: Sim`, odd: clampOdd(o2 * 0.74, 1.50) },
+                { label: `${match.shortB} Vence 1T ou 2T: Não`, odd: clampOdd(2.25, 1.55) }
+            ]
+        },
+
+        // ==================== 2. GOLS (10 Mercados) ====================
+        {
+            id: 'm_ou_full',
+            cat: 'gols',
+            title: '⚽ Total de Gols na Partida (Mais / Menos - Todas as Linhas)',
+            badge: 'Linhas 0.5 a 6.5',
+            cols: 2,
+            options: [
+                { label: 'Mais de 0.5 Gols', odd: 1.07 },
+                { label: 'Menos de 0.5 Gols', odd: 8.20 },
+                { label: 'Mais de 1.5 Gols', odd: 1.32 },
+                { label: 'Menos de 1.5 Gols', odd: 3.25 },
+                { label: 'Mais de 2.5 Gols', odd: 1.88 },
+                { label: 'Menos de 2.5 Gols', odd: 1.90 },
+                { label: 'Mais de 3.5 Gols', odd: 3.10 },
+                { label: 'Menos de 3.5 Gols', odd: 1.35 },
+                { label: 'Mais de 4.5 Gols', odd: 5.80 },
+                { label: 'Menos de 4.5 Gols', odd: 1.12 },
+                { label: 'Mais de 5.5 Gols', odd: 11.50 },
+                { label: 'Menos de 5.5 Gols', odd: 1.04 },
+                { label: 'Mais de 6.5 Gols', odd: 23.00 },
+                { label: 'Menos de 6.5 Gols', odd: 1.01 }
+            ]
+        },
+        {
+            id: 'm_ou_asian',
+            cat: 'gols',
+            title: '🌏 Linhas Asiáticas de Gols (Total Asiático)',
+            badge: 'Reembolso Parcial/Total',
+            cols: 2,
+            options: [
+                { label: 'Gols Asiático: Mais de 1.0', odd: 1.12 },
+                { label: 'Gols Asiático: Menos de 1.0', odd: 5.90 },
+                { label: 'Gols Asiático: Mais de 1.25', odd: 1.22 },
+                { label: 'Gols Asiático: Menos de 1.25', odd: 3.95 },
+                { label: 'Gols Asiático: Mais de 1.75', odd: 1.44 },
+                { label: 'Gols Asiático: Menos de 1.75', odd: 2.68 },
+                { label: 'Gols Asiático: Mais de 2.0', odd: 1.56 },
+                { label: 'Gols Asiático: Menos de 2.0', odd: 2.38 },
+                { label: 'Gols Asiático: Mais de 2.25', odd: 1.72 },
+                { label: 'Gols Asiático: Menos de 2.25', odd: 2.08 },
+                { label: 'Gols Asiático: Mais de 2.75', odd: 2.12 },
+                { label: 'Gols Asiático: Menos de 2.75', odd: 1.70 },
+                { label: 'Gols Asiático: Mais de 3.0', odd: 2.55 },
+                { label: 'Gols Asiático: Menos de 3.0', odd: 1.50 },
+                { label: 'Gols Asiático: Mais de 3.25', odd: 2.82 },
+                { label: 'Gols Asiático: Menos de 3.25', odd: 1.41 },
+                { label: 'Gols Asiático: Mais de 3.75', odd: 3.65 },
+                { label: 'Gols Asiático: Menos de 3.75', odd: 1.26 }
+            ]
+        },
+        {
+            id: 'm_home_ou',
+            cat: 'gols',
+            title: `🏠 Total de Gols: ${match.teamA} (Mandante)`,
+            badge: 'Gols Casa',
+            cols: 2,
+            options: [
+                { label: `${match.shortA}: Mais de 0.5 Gols`, odd: clampOdd(o1 * 0.58, 1.18) },
+                { label: `${match.shortA}: Menos de 0.5 Gols`, odd: clampOdd(4.20 / (o1 * 0.5), 2.20) },
+                { label: `${match.shortA}: Mais de 1.5 Gols`, odd: clampOdd(o1 * 0.98, 1.85) },
+                { label: `${match.shortA}: Menos de 1.5 Gols`, odd: clampOdd(1.85, 1.38) },
+                { label: `${match.shortA}: Mais de 2.5 Gols`, odd: clampOdd(o1 * 1.95, 3.60) },
+                { label: `${match.shortA}: Menos de 2.5 Gols`, odd: 1.24 },
+                { label: `${match.shortA}: Mais de 3.5 Gols`, odd: clampOdd(o1 * 3.80, 7.50) },
+                { label: `${match.shortA}: Menos de 3.5 Gols`, odd: 1.07 }
+            ]
+        },
+        {
+            id: 'm_away_ou',
+            cat: 'gols',
+            title: `✈️ Total de Gols: ${match.teamB} (Visitante)`,
+            badge: 'Gols Fora',
+            cols: 2,
+            options: [
+                { label: `${match.shortB}: Mais de 0.5 Gols`, odd: clampOdd(o2 * 0.55, 1.25) },
+                { label: `${match.shortB}: Menos de 0.5 Gols`, odd: clampOdd(3.80 / (o2 * 0.45), 1.95) },
+                { label: `${match.shortB}: Mais de 1.5 Gols`, odd: clampOdd(o2 * 1.05, 2.15) },
+                { label: `${match.shortB}: Menos de 1.5 Gols`, odd: 1.65 },
+                { label: `${match.shortB}: Mais de 2.5 Gols`, odd: clampOdd(o2 * 2.20, 4.40) },
+                { label: `${match.shortB}: Menos de 2.5 Gols`, odd: 1.18 },
+                { label: `${match.shortB}: Mais de 3.5 Gols`, odd: clampOdd(o2 * 4.20, 9.20) },
+                { label: `${match.shortB}: Menos de 3.5 Gols`, odd: 1.05 }
+            ]
+        },
+        {
+            id: 'm_exact_goals',
+            cat: 'gols',
+            title: '🔢 Número Exato de Gols na Partida',
+            badge: 'Contagem Exata',
+            cols: 4,
+            options: [
+                { label: 'Exatamente 0 Gols', odd: 8.20 },
+                { label: 'Exatamente 1 Gol', odd: 4.30 },
+                { label: 'Exatamente 2 Gols', odd: 3.35 },
+                { label: 'Exatamente 3 Gols', odd: 4.10 },
+                { label: 'Exatamente 4 Gols', odd: 6.20 },
+                { label: 'Exatamente 5 Gols', odd: 11.00 },
+                { label: '6 ou Mais Gols', odd: 17.50 },
+                { label: '2 ou 3 Gols Exatos', odd: 1.95 }
+            ]
+        },
+        {
+            id: 'm_home_exact_goals',
+            cat: 'gols',
+            title: `🏠 Gols Exatos: ${match.teamA}`,
+            badge: 'Mandante',
+            cols: 4,
+            options: [
+                { label: `${match.shortA}: 0 Gols`, odd: 3.40 },
+                { label: `${match.shortA}: 1 Gol`, odd: 2.55 },
+                { label: `${match.shortA}: 2 Gols`, odd: 3.50 },
+                { label: `${match.shortA}: 3 Gols`, odd: 6.80 },
+                { label: `${match.shortA}: 4+ Gols`, odd: 13.00 }
+            ]
+        },
+        {
+            id: 'm_away_exact_goals',
+            cat: 'gols',
+            title: `✈️ Gols Exatos: ${match.teamB}`,
+            badge: 'Visitante',
+            cols: 4,
+            options: [
+                { label: `${match.shortB}: 0 Gols`, odd: 2.75 },
+                { label: `${match.shortB}: 1 Gol`, odd: 2.50 },
+                { label: `${match.shortB}: 2 Gols`, odd: 4.10 },
+                { label: `${match.shortB}: 3 Gols`, odd: 8.50 },
+                { label: `${match.shortB}: 4+ Gols`, odd: 18.00 }
+            ]
+        },
+        {
+            id: 'm_goal_bands',
+            cat: 'gols',
+            title: '📊 Faixas de Gols na Partida (Multi-Gols)',
+            badge: 'Intervalo de Gols',
+            cols: 4,
+            options: [
+                { label: 'Faixa: 0 a 1 Gol', odd: 3.15 },
+                { label: 'Faixa: 1 a 2 Gols', odd: 1.98 },
+                { label: 'Faixa: 1 a 3 Gols', odd: 1.40 },
+                { label: 'Faixa: 2 a 3 Gols', odd: 1.95 },
+                { label: 'Faixa: 2 a 4 Gols', odd: 1.52 },
+                { label: 'Faixa: 3 a 4 Gols', odd: 2.55 },
+                { label: 'Faixa: 3 a 5 Gols', odd: 2.10 },
+                { label: 'Faixa: 4 a 6 Gols', odd: 3.85 }
+            ]
+        },
+        {
+            id: 'm_odd_even_goals',
+            cat: 'gols',
+            title: '🎲 Gols Ímpar / Par (Geral e por Equipe)',
+            badge: 'Ímpar / Par',
+            cols: 2,
+            options: [
+                { label: 'Total de Gols: Ímpar', odd: 1.90 },
+                { label: 'Total de Gols: Par', odd: 1.86 },
+                { label: `Gols ${match.shortA}: Ímpar`, odd: 2.05 },
+                { label: `Gols ${match.shortA}: Par`, odd: 1.72 },
+                { label: `Gols ${match.shortB}: Ímpar`, odd: 2.15 },
+                { label: `Gols ${match.shortB}: Par`, odd: 1.65 }
+            ]
+        },
+        {
+            id: 'm_cleansheet_both_halves',
+            cat: 'gols',
+            title: '🧤 Baliza Inviolada (Clean Sheet) & Marcar nos Dois Tempos',
+            badge: 'Defesa & Ataque',
+            cols: 2,
+            options: [
+                { label: `${match.shortA} Não Sofre Gol: Sim`, odd: clampOdd(o1 * 1.15, 2.25) },
+                { label: `${match.shortA} Não Sofre Gol: Não`, odd: 1.58 },
+                { label: `${match.shortB} Não Sofre Gol: Sim`, odd: clampOdd(o2 * 1.20, 2.75) },
+                { label: `${match.shortB} Não Sofre Gol: Não`, odd: 1.42 },
+                { label: `${match.shortA} Marca nos 2 Tempos: Sim`, odd: clampOdd(o1 * 1.45, 2.85) },
+                { label: `${match.shortB} Marca nos 2 Tempos: Sim`, odd: clampOdd(o2 * 1.55, 3.40) },
+                { label: 'Gols em Ambos os Tempos: Sim', odd: 1.74 },
+                { label: 'Gols em Ambos os Tempos: Não', odd: 2.02 }
+            ]
+        },
+
+        // ==================== 3. 1º E 2º TEMPO (9 Mercados) ====================
+        {
+            id: 'm_ht_1x2',
+            cat: 'tempos',
+            title: '⏱️ Resultado do 1º Tempo (Intervalo)',
+            badge: '1º Tempo',
+            cols: 3,
+            options: [
+                { label: `1º Tempo: ${match.teamA}`, odd: clampOdd(o1 * 1.28, 2.40) },
+                { label: '1º Tempo: Empate', odd: 2.10 },
+                { label: `1º Tempo: ${match.teamB}`, odd: clampOdd(o2 * 1.32, 2.75) }
+            ]
+        },
+        {
+            id: 'm_ht_dc',
+            cat: 'tempos',
+            title: '🛡️ Dupla Hipótese no 1º Tempo',
+            badge: '1º Tempo',
+            cols: 3,
+            options: [
+                { label: `1º Tempo: ${match.shortA} ou Empate (1X)`, odd: 1.24 },
+                { label: `1º Tempo: ${match.shortA} ou ${match.shortB} (12)`, odd: 1.66 },
+                { label: `1º Tempo: Empate ou ${match.shortB} (X2)`, odd: 1.36 }
+            ]
+        },
+        {
+            id: 'm_ht_dnb_btts',
+            cat: 'tempos',
+            title: '🥅 Empate Anula & Ambos Marcam no 1º Tempo',
+            badge: '1º Tempo',
+            cols: 2,
+            options: [
+                { label: `1ºT Empate Anula: ${match.shortA}`, odd: clampOdd(o1 * 0.82, 1.55) },
+                { label: `1ºT Empate Anula: ${match.shortB}`, odd: clampOdd(o2 * 0.85, 1.95) },
+                { label: '1ºT Ambos Marcam: Sim', odd: 4.30 },
+                { label: '1ºT Ambos Marcam: Não', odd: 1.20 }
+            ]
+        },
+        {
+            id: 'm_ht_ou',
+            cat: 'tempos',
+            title: '⚽ Total de Gols no 1º Tempo (Mais / Menos)',
+            badge: '1º Tempo',
+            cols: 2,
+            options: [
+                { label: '1ºT: Mais de 0.5 Gols', odd: 1.38 },
+                { label: '1ºT: Menos de 0.5 Gols', odd: 2.90 },
+                { label: '1ºT: Mais de 1.5 Gols', odd: 2.75 },
+                { label: '1ºT: Menos de 1.5 Gols', odd: 1.42 },
+                { label: '1ºT: Mais de 2.5 Gols', odd: 6.80 },
+                { label: '1ºT: Menos de 2.5 Gols', odd: 1.09 },
+                { label: '1ºT: Mais de 3.5 Gols', odd: 17.00 },
+                { label: '1ºT: Menos de 3.5 Gols', odd: 1.02 }
+            ]
+        },
+        {
+            id: 'm_ht_cs',
+            cat: 'tempos',
+            title: '🔢 Placar Exato do 1º Tempo',
+            badge: 'Intervalo',
+            cols: 4,
+            options: [
+                { label: '1ºT Placar: 0 - 0', odd: 2.75 },
+                { label: '1ºT Placar: 1 - 0', odd: 3.90 },
+                { label: '1ºT Placar: 0 - 1', odd: 4.60 },
+                { label: '1ºT Placar: 1 - 1', odd: 7.20 },
+                { label: '1ºT Placar: 2 - 0', odd: 9.80 },
+                { label: '1ºT Placar: 0 - 2', odd: 13.50 },
+                { label: '1ºT Placar: 2 - 1', odd: 18.00 },
+                { label: '1ºT Placar: 1 - 2', odd: 22.00 },
+                { label: '1ºT Placar: 3 - 0', odd: 29.00 },
+                { label: '1ºT Placar: 0 - 3', odd: 41.00 }
+            ]
+        },
+        {
+            id: 'm_2h_1x2_dc',
+            cat: 'tempos',
+            title: '⏱️ Resultado & Dupla Hipótese do 2º Tempo',
+            badge: '2º Tempo',
+            cols: 3,
+            options: [
+                { label: `2º Tempo: ${match.teamA}`, odd: clampOdd(o1 * 1.18, 2.20) },
+                { label: '2º Tempo: Empate', odd: 2.35 },
+                { label: `2º Tempo: ${match.teamB}`, odd: clampOdd(o2 * 1.22, 2.55) },
+                { label: `2ºT Dupla: ${match.shortA}/Empate`, odd: 1.28 },
+                { label: `2ºT Dupla: ${match.shortA}/${match.shortB}`, odd: 1.52 },
+                { label: `2ºT Dupla: Empate/${match.shortB}`, odd: 1.40 }
+            ]
+        },
+        {
+            id: 'm_2h_ou_btts',
+            cat: 'tempos',
+            title: '⚽ Total de Gols & Ambos Marcam no 2º Tempo',
+            badge: '2º Tempo',
+            cols: 2,
+            options: [
+                { label: '2ºT: Mais de 0.5 Gols', odd: 1.25 },
+                { label: '2ºT: Menos de 0.5 Gols', odd: 3.75 },
+                { label: '2ºT: Mais de 1.5 Gols', odd: 2.15 },
+                { label: '2ºT: Menos de 1.5 Gols', odd: 1.66 },
+                { label: '2ºT: Mais de 2.5 Gols', odd: 4.70 },
+                { label: '2ºT: Menos de 2.5 Gols', odd: 1.17 },
+                { label: '2ºT: Mais de 3.5 Gols', odd: 11.00 },
+                { label: '2ºT: Menos de 3.5 Gols', odd: 1.04 },
+                { label: '2ºT Ambos Marcam: Sim', odd: 3.30 },
+                { label: '2ºT Ambos Marcam: Não', odd: 1.32 }
+            ]
+        },
+        {
+            id: 'm_ht_ft',
+            cat: 'tempos',
+            title: '🔄 Intervalo / Final do Jogo (HT / FT)',
+            badge: '9 Combinações',
+            cols: 3,
+            options: [
+                { label: `${match.shortA} / ${match.shortA}`, odd: clampOdd(o1 * 1.55, 2.95) },
+                { label: `${match.shortA} / Empate`, odd: 14.50 },
+                { label: `${match.shortA} / ${match.shortB}`, odd: 29.00 },
+                { label: `Empate / ${match.shortA}`, odd: clampOdd(o1 * 2.15, 4.60) },
+                { label: 'Empate / Empate', odd: 4.80 },
+                { label: `Empate / ${match.shortB}`, odd: clampOdd(o2 * 2.20, 5.40) },
+                { label: `${match.shortB} / ${match.shortA}`, odd: 26.00 },
+                { label: `${match.shortB} / Empate`, odd: 14.50 },
+                { label: `${match.shortB} / ${match.shortB}`, odd: clampOdd(o2 * 1.60, 3.60) }
+            ]
+        },
+        {
+            id: 'm_highest_scoring_half',
+            cat: 'tempos',
+            title: '📈 Tempo com Mais Gols (Geral e por Equipe)',
+            badge: 'Comparativo 1T x 2T',
+            cols: 3,
+            options: [
+                { label: 'Mais Gols: 1º Tempo', odd: 3.10 },
+                { label: 'Mais Gols: Igualdade', odd: 3.35 },
+                { label: 'Mais Gols: 2º Tempo', odd: 2.05 },
+                { label: `${match.shortA} Mais Gols: 1ºT`, odd: 3.20 },
+                { label: `${match.shortA} Mais Gols: Igual`, odd: 2.40 },
+                { label: `${match.shortA} Mais Gols: 2ºT`, odd: 2.50 },
+                { label: `${match.shortB} Mais Gols: 1ºT`, odd: 3.45 },
+                { label: `${match.shortB} Mais Gols: Igual`, odd: 2.15 },
+                { label: `${match.shortB} Mais Gols: 2ºT`, odd: 2.75 }
+            ]
+        },
+
+        // ==================== 4. PLACAR EXATO (2 Mercados / 32 Opções) ====================
+        {
+            id: 'm_cs_full',
+            cat: 'placar',
+            title: '🔢 Placar Exato Completo (Tempo Regulamentar 90\')',
+            badge: '24 Placares Oficiais',
+            cols: 4,
+            options: [
+                { label: 'Placar Exato 1 - 0', odd: clampOdd(o1 * 2.9, 5.80) },
+                { label: 'Placar Exato 2 - 0', odd: clampOdd(o1 * 3.8, 7.80) },
+                { label: 'Placar Exato 2 - 1', odd: clampOdd(o1 * 3.9, 8.20) },
+                { label: 'Placar Exato 3 - 0', odd: clampOdd(o1 * 6.8, 14.00) },
+                { label: 'Placar Exato 3 - 1', odd: clampOdd(o1 * 7.2, 15.00) },
+                { label: 'Placar Exato 3 - 2', odd: 26.00 },
+                { label: 'Placar Exato 4 - 0', odd: 34.00 },
+                { label: 'Placar Exato 4 - 1', odd: 31.00 },
+                { label: 'Placar Exato 4 - 2', odd: 51.00 },
+                { label: 'Placar Exato 0 - 0', odd: 8.20 },
+                { label: 'Placar Exato 1 - 1', odd: 6.10 },
+                { label: 'Placar Exato 2 - 2', odd: 13.50 },
+                { label: 'Placar Exato 3 - 3', odd: 51.00 },
+                { label: 'Placar Exato 0 - 1', odd: clampOdd(o2 * 3.1, 6.80) },
+                { label: 'Placar Exato 0 - 2', odd: clampOdd(o2 * 4.5, 10.50) },
+                { label: 'Placar Exato 1 - 2', odd: clampOdd(o2 * 4.1, 9.20) },
+                { label: 'Placar Exato 0 - 3', odd: 23.00 },
+                { label: 'Placar Exato 1 - 3', odd: 21.00 },
+                { label: 'Placar Exato 2 - 3', odd: 29.00 },
+                { label: 'Placar Exato 0 - 4', odd: 56.00 },
+                { label: 'Placar Exato 1 - 4', odd: 46.00 },
+                { label: 'Placar Exato 2 - 4', odd: 67.00 },
+                { label: `Outro Placar: ${match.shortA} Vence`, odd: 19.00 },
+                { label: `Outro Placar: ${match.shortB} Vence`, odd: 26.00 }
+            ]
+        },
+        {
+            id: 'm_cs_groups',
+            cat: 'placar',
+            title: '🎯 Placar Exato Múltiplo (Grupos de Resultados)',
+            badge: 'Maior Chance de Acerto',
+            cols: 4,
+            options: [
+                { label: `${match.shortA}: 1-0, 2-0 ou 3-0`, odd: clampOdd(o1 * 1.45, 2.95) },
+                { label: `${match.shortA}: 2-1, 3-1 ou 4-1`, odd: clampOdd(o1 * 2.10, 4.50) },
+                { label: `${match.shortB}: 0-1, 0-2 ou 0-3`, odd: clampOdd(o2 * 1.55, 3.60) },
+                { label: `${match.shortB}: 1-2, 1-3 ou 1-4`, odd: clampOdd(o2 * 2.25, 5.10) },
+                { label: 'Empate: 1-1, 2-2 ou 3-3', odd: 4.30 },
+                { label: 'Qualquer Vitória por 1-0', odd: 4.10 },
+                { label: 'Qualquer Vitória por 2-0', odd: 5.20 },
+                { label: 'Qualquer Vitória por 2-1', odd: 4.80 }
+            ]
+        },
+
+        // ==================== 5. ESCANTEIOS (5 Mercados / 65 Opções) ====================
+        {
+            id: 'm_corners_ou',
+            cat: 'escanteios',
+            title: '🚩 Total de Escanteios (Mais / Menos - Todas as Linhas)',
+            badge: 'Linhas 6.5 a 13.5',
+            cols: 2,
+            options: [
+                { label: 'Escanteios: Mais de 6.5', odd: 1.18 },
+                { label: 'Escanteios: Menos de 6.5', odd: 4.40 },
+                { label: 'Escanteios: Mais de 7.5', odd: 1.32 },
+                { label: 'Escanteios: Menos de 7.5', odd: 3.20 },
+                { label: 'Escanteios: Mais de 8.5', odd: 1.54 },
+                { label: 'Escanteios: Menos de 8.5', odd: 2.38 },
+                { label: 'Escanteios: Mais de 9.5', odd: 1.85 },
+                { label: 'Escanteios: Menos de 9.5', odd: 1.90 },
+                { label: 'Escanteios: Mais de 10.5', odd: 2.30 },
+                { label: 'Escanteios: Menos de 10.5', odd: 1.58 },
+                { label: 'Escanteios: Mais de 11.5', odd: 3.05 },
+                { label: 'Escanteios: Menos de 11.5', odd: 1.35 },
+                { label: 'Escanteios: Mais de 12.5', odd: 4.20 },
+                { label: 'Escanteios: Menos de 12.5', odd: 1.20 },
+                { label: 'Escanteios: Mais de 13.5', odd: 6.10 },
+                { label: 'Escanteios: Menos de 13.5', odd: 1.11 }
+            ]
+        },
+        {
+            id: 'm_corners_3way',
+            cat: 'escanteios',
+            title: '🚩 Escanteios 3 Opções (Menos / Exatamente / Mais)',
+            badge: '3 Opções',
+            cols: 3,
+            options: [
+                { label: 'Menos de 8 Escanteios', odd: 3.10 },
+                { label: 'Exatamente 8 Escanteios', odd: 7.50 },
+                { label: 'Mais de 8 Escanteios', odd: 1.55 },
+                { label: 'Menos de 9 Escanteios', odd: 2.35 },
+                { label: 'Exatamente 9 Escanteios', odd: 7.00 },
+                { label: 'Mais de 9 Escanteios', odd: 1.88 },
+                { label: 'Menos de 10 Escanteios', odd: 1.88 },
+                { label: 'Exatamente 10 Escanteios', odd: 7.20 },
+                { label: 'Mais de 10 Escanteios', odd: 2.32 },
+                { label: 'Menos de 11 Escanteios', odd: 1.55 },
+                { label: 'Exatamente 11 Escanteios', odd: 8.00 },
+                { label: 'Mais de 11 Escanteios', odd: 3.10 }
+            ]
+        },
+        {
+            id: 'm_corners_teams',
+            cat: 'escanteios',
+            title: `🚩 Escanteios por Equipe (${match.shortA} e ${match.shortB})`,
+            badge: 'Total Individual',
+            cols: 2,
+            options: [
+                { label: `${match.shortA}: Mais de 3.5 Escanteios`, odd: 1.32 },
+                { label: `${match.shortA}: Menos de 3.5 Escanteios`, odd: 3.20 },
+                { label: `${match.shortA}: Mais de 4.5 Escanteios`, odd: 1.65 },
+                { label: `${match.shortA}: Menos de 4.5 Escanteios`, odd: 2.15 },
+                { label: `${match.shortA}: Mais de 5.5 Escanteios`, odd: 2.20 },
+                { label: `${match.shortA}: Menos de 5.5 Escanteios`, odd: 1.62 },
+                { label: `${match.shortA}: Mais de 6.5 Escanteios`, odd: 3.15 },
+                { label: `${match.shortA}: Menos de 6.5 Escanteios`, odd: 1.33 },
+                { label: `${match.shortB}: Mais de 3.5 Escanteios`, odd: 1.48 },
+                { label: `${match.shortB}: Menos de 3.5 Escanteios`, odd: 2.52 },
+                { label: `${match.shortB}: Mais de 4.5 Escanteios`, odd: 1.92 },
+                { label: `${match.shortB}: Menos de 4.5 Escanteios`, odd: 1.82 },
+                { label: `${match.shortB}: Mais de 5.5 Escanteios`, odd: 2.68 },
+                { label: `${match.shortB}: Menos de 5.5 Escanteios`, odd: 1.44 },
+                { label: `${match.shortB}: Mais de 6.5 Escanteios`, odd: 3.90 },
+                { label: `${match.shortB}: Menos de 6.5 Escanteios`, odd: 1.22 }
+            ]
+        },
+        {
+            id: 'm_corners_ht_1x2',
+            cat: 'escanteios',
+            title: '🚩 Escanteios no 1º Tempo & Vencedor de Escanteios (1x2)',
+            badge: '1ºT & Mais Cantos',
+            cols: 3,
+            options: [
+                { label: '1ºT: Mais de 3.5 Cantos', odd: 1.48 },
+                { label: '1ºT: Menos de 3.5 Cantos', odd: 2.52 },
+                { label: '1ºT: Mais de 4.5 Cantos', odd: 1.95 },
+                { label: '1ºT: Menos de 4.5 Cantos', odd: 1.80 },
+                { label: '1ºT: Mais de 5.5 Cantos', odd: 2.85 },
+                { label: '1ºT: Menos de 5.5 Cantos', odd: 1.40 },
+                { label: `Mais Cantos: ${match.teamA}`, odd: 1.72 },
+                { label: 'Empate em Escanteios', odd: 7.50 },
+                { label: `Mais Cantos: ${match.teamB}`, odd: 2.45 }
+            ]
+        },
+        {
+            id: 'm_corners_race',
+            cat: 'escanteios',
+            title: '🏁 Corrida de Escanteios (Primeiro a Atingir X Cantos)',
+            badge: 'Race to Corners',
+            cols: 3,
+            options: [
+                { label: `Primeiro a 3 Cantos: ${match.shortA}`, odd: 1.65 },
+                { label: `Primeiro a 3 Cantos: ${match.shortB}`, odd: 2.25 },
+                { label: 'Nenhum chega a 3 Cantos', odd: 15.00 },
+                { label: `Primeiro a 5 Cantos: ${match.shortA}`, odd: 1.90 },
+                { label: `Primeiro a 5 Cantos: ${match.shortB}`, odd: 2.75 },
+                { label: 'Nenhum chega a 5 Cantos', odd: 3.90 },
+                { label: `Primeiro a 7 Cantos: ${match.shortA}`, odd: 2.85 },
+                { label: `Primeiro a 7 Cantos: ${match.shortB}`, odd: 4.10 },
+                { label: 'Nenhum chega a 7 Cantos', odd: 1.72 },
+                { label: `Primeiro a 9 Cantos: ${match.shortA}`, odd: 5.20 },
+                { label: `Primeiro a 9 Cantos: ${match.shortB}`, odd: 7.50 },
+                { label: 'Nenhum chega a 9 Cantos', odd: 1.20 }
+            ]
+        },
+
+        // ==================== 6. CARTÕES (3 Mercados / 29 Opções) ====================
+        {
+            id: 'm_cards_ou',
+            cat: 'cartoes',
+            title: '🟨 Total de Cartões na Partida (Mais / Menos)',
+            badge: 'Disciplina 90\'',
+            cols: 2,
+            options: [
+                { label: 'Cartões: Mais de 2.5', odd: 1.22 },
+                { label: 'Cartões: Menos de 2.5', odd: 3.90 },
+                { label: 'Cartões: Mais de 3.5', odd: 1.52 },
+                { label: 'Cartões: Menos de 3.5', odd: 2.42 },
+                { label: 'Cartões: Mais de 4.5', odd: 1.92 },
+                { label: 'Cartões: Menos de 4.5', odd: 1.82 },
+                { label: 'Cartões: Mais de 5.5', odd: 2.65 },
+                { label: 'Cartões: Menos de 5.5', odd: 1.45 },
+                { label: 'Cartões: Mais de 6.5', odd: 3.85 },
+                { label: 'Cartões: Menos de 6.5', odd: 1.23 }
+            ]
+        },
+        {
+            id: 'm_cards_teams',
+            cat: 'cartoes',
+            title: `🟨 Cartões por Equipe (${match.shortA} e ${match.shortB})`,
+            badge: 'Cartões Individuais',
+            cols: 2,
+            options: [
+                { label: `${match.shortA}: Mais de 1.5 Cartões`, odd: 1.48 },
+                { label: `${match.shortA}: Menos de 1.5 Cartões`, odd: 2.52 },
+                { label: `${match.shortA}: Mais de 2.5 Cartões`, odd: 2.25 },
+                { label: `${match.shortA}: Menos de 2.5 Cartões`, odd: 1.60 },
+                { label: `${match.shortA}: Mais de 3.5 Cartões`, odd: 3.95 },
+                { label: `${match.shortA}: Menos de 3.5 Cartões`, odd: 1.22 },
+                { label: `${match.shortB}: Mais de 1.5 Cartões`, odd: 1.40 },
+                { label: `${match.shortB}: Menos de 1.5 Cartões`, odd: 2.80 },
+                { label: `${match.shortB}: Mais de 2.5 Cartões`, odd: 2.05 },
+                { label: `${match.shortB}: Menos de 2.5 Cartões`, odd: 1.72 },
+                { label: `${match.shortB}: Mais de 3.5 Cartões`, odd: 3.50 },
+                { label: `${match.shortB}: Menos de 3.5 Cartões`, odd: 1.28 }
+            ]
+        },
+        {
+            id: 'm_cards_red_specials',
+            cat: 'cartoes',
+            title: '🟥 Cartão Vermelho, Pênalti & Mais Cartões (1x2)',
+            badge: 'Arbitragem / VAR',
+            cols: 3,
+            options: [
+                { label: 'Cartão Vermelho no Jogo: Sim', odd: 3.95 },
+                { label: 'Cartão Vermelho no Jogo: Não', odd: 1.22 },
+                { label: 'Pênalti Marcado no Jogo: Sim', odd: 2.85 },
+                { label: 'Pênalti Marcado no Jogo: Não', odd: 1.40 },
+                { label: `Mais Cartões: ${match.shortA}`, odd: 2.35 },
+                { label: 'Empate em Cartões', odd: 4.50 },
+                { label: `Mais Cartões: ${match.shortB}`, odd: 2.05 }
+            ]
+        },
+
+        // ==================== 7. HANDICAP (2 Mercados / 30 Opções) ====================
+        {
+            id: 'm_eh_3way',
+            cat: 'handicap',
+            title: '⚖️ Handicap Europeu (3 Opções)',
+            badge: 'Vantagem / Desvantagem',
+            cols: 3,
+            options: [
+                { label: `Handicap (-2): ${match.shortA}`, odd: clampOdd(o1 * 3.85, 6.20) },
+                { label: 'Empate Handicap (-2)', odd: 5.40 },
+                { label: `Handicap (+2): ${match.shortB}`, odd: 1.25 },
+                { label: `Handicap (-1): ${match.shortA}`, odd: clampOdd(o1 * 1.92, 3.20) },
+                { label: 'Empate Handicap (-1)', odd: 3.65 },
+                { label: `Handicap (+1): ${match.shortB}`, odd: dcX2 },
+                { label: `Handicap (+1): ${match.shortA}`, odd: dc1X },
+                { label: 'Empate Handicap (+1)', odd: 3.85 },
+                { label: `Handicap (-1): ${match.shortB}`, odd: clampOdd(o2 * 2.05, 3.90) },
+                { label: `Handicap (+2): ${match.shortA}`, odd: 1.14 },
+                { label: 'Empate Handicap (+2)', odd: 6.20 },
+                { label: `Handicap (-2): ${match.shortB}`, odd: clampOdd(o2 * 4.20, 8.50) }
+            ]
+        },
+        {
+            id: 'm_ah_2way',
+            cat: 'handicap',
+            title: '🌏 Handicap Asiático Completo (Linhas -2.0 a +2.0)',
+            badge: 'Linhas Asiáticas',
+            cols: 2,
+            options: [
+                { label: `${match.shortA} (-2.0 Asiático)`, odd: clampOdd(o1 * 3.40, 5.80) },
+                { label: `${match.shortB} (+2.0 Asiático)`, odd: 1.14 },
+                { label: `${match.shortA} (-1.5 Asiático)`, odd: clampOdd(o1 * 1.92, 3.20) },
+                { label: `${match.shortB} (+1.5 Asiático)`, odd: 1.34 },
+                { label: `${match.shortA} (-1.0 Asiático)`, odd: clampOdd(o1 * 1.52, 2.45) },
+                { label: `${match.shortB} (+1.0 Asiático)`, odd: 1.55 },
+                { label: `${match.shortA} (-0.5 Asiático)`, odd: o1 },
+                { label: `${match.shortB} (+0.5 Asiático)`, odd: dcX2 },
+                { label: `${match.shortA} (0.0 Asiático)`, odd: dnb1 },
+                { label: `${match.shortB} (0.0 Asiático)`, odd: dnb2 },
+                { label: `${match.shortA} (+0.5 Asiático)`, odd: dc1X },
+                { label: `${match.shortB} (-0.5 Asiático)`, odd: o2 },
+                { label: `${match.shortA} (+1.0 Asiático)`, odd: 1.36 },
+                { label: `${match.shortB} (-1.0 Asiático)`, odd: clampOdd(o2 * 1.65, 3.10) },
+                { label: `${match.shortA} (+1.5 Asiático)`, odd: 1.22 },
+                { label: `${match.shortB} (-1.5 Asiático)`, odd: clampOdd(o2 * 2.15, 4.20) },
+                { label: `${match.shortA} (+2.0 Asiático)`, odd: 1.08 },
+                { label: `${match.shortB} (-2.0 Asiático)`, odd: clampOdd(o2 * 3.80, 7.40) }
+            ]
+        },
+
+        // ==================== 8. JOGADORES & ESPECIAIS (4 Mercados / 36 Opções) ====================
+        {
+            id: 'm_player_anytime',
+            cat: 'jogadores',
+            title: '👟 Jogador para Marcar a Qualquer Momento (90 Minutos)',
+            badge: 'Atletas Escalados / Destaques',
+            cols: 4,
+            options: [
+                { label: `Gol: ${pA1}`, odd: 2.30 },
+                { label: `Gol: ${pA2}`, odd: 2.85 },
+                { label: `Gol: ${pA3}`, odd: 3.20 },
+                { label: `Gol: ${pA4}`, odd: 3.60 },
+                { label: `Gol: ${pB1}`, odd: 2.55 },
+                { label: `Gol: ${pB2}`, odd: 3.10 },
+                { label: `Gol: ${pB3}`, odd: 3.50 },
+                { label: `Gol: ${pB4}`, odd: 3.95 }
+            ]
+        },
+        {
+            id: 'm_player_first',
+            cat: 'jogadores',
+            title: '🥇 Primeiro Jogador a Marcar Gol na Partida',
+            badge: '1º Artilheiro',
+            cols: 4,
+            options: [
+                { label: `1º Gol: ${pA1}`, odd: 4.80 },
+                { label: `1º Gol: ${pA2}`, odd: 6.20 },
+                { label: `1º Gol: ${pA3}`, odd: 7.00 },
+                { label: `1º Gol: ${pA4}`, odd: 8.20 },
+                { label: `1º Gol: ${pB1}`, odd: 5.40 },
+                { label: `1º Gol: ${pB2}`, odd: 6.80 },
+                { label: `1º Gol: ${pB3}`, odd: 7.80 },
+                { label: `1º Gol: ${pB4}`, odd: 9.00 }
+            ]
+        },
+        {
+            id: 'm_player_brace_assist',
+            cat: 'jogadores',
+            title: '🔥 Jogador para Marcar 2+ Gols ou Dar Assistência',
+            badge: 'Especiais Atletas',
+            cols: 4,
+            options: [
+                { label: `2+ Gols: ${pA1}`, odd: 7.50 },
+                { label: `2+ Gols: ${pA2}`, odd: 10.50 },
+                { label: `2+ Gols: ${pB1}`, odd: 8.80 },
+                { label: `2+ Gols: ${pB2}`, odd: 12.00 },
+                { label: `Assistência: ${pA2}`, odd: 3.40 },
+                { label: `Assistência: ${pA3}`, odd: 3.90 },
+                { label: `Assistência: ${pB2}`, odd: 3.75 },
+                { label: `Assistência: ${pB3}`, odd: 4.30 }
+            ]
+        },
+        {
+            id: 'm_time_first_goal_specials',
+            cat: 'jogadores',
+            title: '⏱️ Minuto do 1º Gol & Especiais da Partida',
+            badge: 'Minutos & Lances',
+            cols: 4,
+            options: [
+                { label: '1º Gol: 01 a 15 min', odd: 3.10 },
+                { label: '1º Gol: 16 a 30 min', odd: 3.60 },
+                { label: '1º Gol: 31 a 45 min', odd: 4.20 },
+                { label: '1º Gol: 46 a 60 min', odd: 4.80 },
+                { label: '1º Gol: 61 a 75 min', odd: 5.80 },
+                { label: '1º Gol: 76 a 90 min', odd: 6.80 },
+                { label: 'Gol antes dos 28:00 min: Sim', odd: 1.85 },
+                { label: 'Gol antes dos 28:00 min: Não', odd: 1.88 },
+                { label: 'Gol de Fora da Área: Sim', odd: 2.95 },
+                { label: 'Gol de Cabeça na Partida: Sim', odd: 2.45 },
+                { label: 'Gol de Falta Direta: Sim', odd: 7.50 },
+                { label: 'Gol Contra na Partida: Sim', odd: 8.50 }
+            ]
+        }
+    ];
+
+    // Atualiza o contador real de opções na partida
+    const totalOpts = blocks.reduce((acc, b) => acc + b.options.length, 0);
+    match.totalMarketsCount = totalOpts;
+
+    return blocks;
+}
+
+function renderMatchCenterMarkets() {
+    const match = window.BetProData.matches.find(x => x.id === window.BetProData.selectedMatchId);
+    if (!match) return;
+
+    const container = document.getElementById('mc-all-markets');
+    if (!container) return;
+
+    const allBlocks = buildFullMatchMarketsCatalog(match);
+    const totalOptionsCount = allBlocks.reduce((acc, b) => acc + b.options.length, 0);
+
+    const categories = [
+        { id: 'all', label: `🔥 Todos (${totalOptionsCount})` },
+        { id: 'principais', label: '⭐ Principais' },
+        { id: 'gols', label: '⚽ Gols' },
+        { id: 'tempos', label: '⏱️ 1º / 2º Tempo' },
+        { id: 'placar', label: '🔢 Placar Exato' },
+        { id: 'escanteios', label: '🚩 Escanteios' },
+        { id: 'cartoes', label: '🟨 Cartões' },
+        { id: 'handicap', label: '⚖️ Handicap' },
+        { id: 'jogadores', label: '👟 Jogadores & Especiais' }
+    ];
+
+    const q = (marketSearchQuery || '').trim().toLowerCase();
+    const visibleBlocks = allBlocks.filter(b => {
+        const catMatch = activeMarketCategory === 'all' || b.cat === activeMarketCategory;
+        if (!catMatch) return false;
+        if (!q) return true;
+        return b.title.toLowerCase().includes(q) || b.options.some(o => o.label.toLowerCase().includes(q));
+    });
+
+    const catPillsHtml = categories.map(c => `
+        <button class="filter-pill ${activeMarketCategory === c.id ? 'active' : ''}" onclick="setMarketCategoryFilter('${c.id}')">
+            ${c.label}
+        </button>
+    `).join('');
+
+    const cardsHtml = visibleBlocks.map(block => {
+        const isCollapsed = collapsedMarketBlocks.has(block.id);
+        const gridClass = block.cols === 4 ? 'mc-market-grid-4' : (block.cols === 3 ? 'mc-market-grid-3' : 'mc-market-grid-2');
+
+        const optsHtml = block.options.map(opt => {
+            const isSel = isBetSelected(match.id, opt.label);
+            return `
+                <div class="odd-btn ${isSel ? 'selected' : ''}" onclick="toggleBet(${match.id}, '${escJs(opt.label)}', ${opt.odd}, '${escJs(block.title)}')">
+                    <span class="odd-label" title="${escJs(opt.label)}">${isSel ? '✓ ' : ''}${opt.label}</span>
+                    <span class="odd-val">${formatOddComma(opt.odd)}</span>
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div class="mc-market-card">
+                <div class="mc-market-header" onclick="toggleMarketBlockCollapse('${block.id}')" style="cursor:pointer;">
+                    <span>${block.title} <small style="color:rgba(255,255,255,0.68); font-weight:600; margin-left:6px;">(${block.options.length} opções)</small></span>
+                    <span style="font-size:11px; color:var(--brand-gold); display:flex; align-items:center; gap:8px;">
+                        <span>${block.badge}</span>
+                        <i class="fas fa-chevron-${isCollapsed ? 'down' : 'up'}"></i>
+                    </span>
+                </div>
+                ${!isCollapsed ? `<div class="${gridClass}">${optsHtml}</div>` : ''}
+            </div>
+        `;
+    }).join('');
 
     container.innerHTML = `
-        <div style="background:rgba(59,42,111,0.35); border:1px solid var(--brand-gold); padding:10px 14px; border-radius:5px; font-size:12px; display:flex; justify-content:space-between; align-items:center;">
-            <span>📌 <strong>Regra Oficial 365 DA BARRA:</strong> É permitido selecionar <strong>1 opção por partida</strong> em cada bilhete. Fonte de Cotações: <strong>${match.oddsProvider || 'Bet365 Oficial'}</strong>.</span>
-            <span style="color:var(--brand-gold); font-weight:800;">Teto Máx: R$ 30.000,00</span>
+        <div style="background:rgba(59,42,111,0.38); border:1px solid var(--brand-gold); padding:10px 14px; border-radius:6px; font-size:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <span>📌 <strong>Catálogo Oficial 365 DA BARRA:</strong> <strong>${allBlocks.length} Mercados</strong> e <strong>${totalOptionsCount} Opções de Aposta</strong> disponíveis nesta partida (Regra: 1 opção por jogo).</span>
+            <span style="color:var(--brand-gold); font-weight:900;">Teto Máx: R$ 30.000,00</span>
         </div>
 
-        <div class="mc-market-card">
-            <div class="mc-market-header">
-                <span>⚽ Vencedor do Encontro (1x2 - Tempo Regulamentar 90')</span>
-                <span style="font-size:11px; color:var(--brand-gold);">📊 ${match.oddsProvider || 'Odds Reais'}</span>
+        <!-- Barra de Abas de Mercados + Busca Rápida de Mercado -->
+        <div class="filter-bar" style="position:sticky; top:0; z-index:15; box-shadow:0 4px 14px rgba(0,0,0,0.35);">
+            <div class="filter-pills" style="flex:1;">
+                ${catPillsHtml}
             </div>
-            <div class="mc-market-grid-3">
-                <div class="odd-btn ${sel1 ? 'selected' : ''}" onclick="toggleBet(${match.id}, '${escJs(sel1Label)}', ${match.odds['1']}, 'Vencedor do Encontro')">
-                    <span class="odd-label">${match.teamA} (Casa)</span>
-                    <span class="odd-val">${formatOddComma(match.odds['1'])}</span>
-                </div>
-                <div class="odd-btn ${selX ? 'selected' : ''}" onclick="toggleBet(${match.id}, '${escJs(selXLabel)}', ${match.odds['X']}, 'Vencedor do Encontro')">
-                    <span class="odd-label">Empate (X)</span>
-                    <span class="odd-val">${formatOddComma(match.odds['X'])}</span>
-                </div>
-                <div class="odd-btn ${sel2 ? 'selected' : ''}" onclick="toggleBet(${match.id}, '${escJs(sel2Label)}', ${match.odds['2']}, 'Vencedor do Encontro')">
-                    <span class="odd-label">${match.teamB} (Fora)</span>
-                    <span class="odd-val">${formatOddComma(match.odds['2'])}</span>
-                </div>
+            <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                <input type="text" class="stake-input" style="width:190px; height:32px; font-size:12px;" placeholder="🔍 Buscar mercado/opção..." value="${escJs(marketSearchQuery)}" oninput="handleMarketSearchInput(this.value)">
+                <button class="quick-stake-btn" style="flex:0; white-space:nowrap; padding:6px 10px;" onclick="expandOrCollapseAllMarkets(false)">Expandir</button>
+                <button class="quick-stake-btn" style="flex:0; white-space:nowrap; padding:6px 10px;" onclick="expandOrCollapseAllMarkets(true)">Recolher</button>
             </div>
         </div>
 
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-            <div class="mc-market-card">
-                <div class="mc-market-header">
-                    <span>🎯 ${match.markets.overUnder.label}</span>
-                    <span style="font-size:11px; color:var(--brand-gold);">Mais / Menos</span>
-                </div>
-                <div class="mc-market-grid-2">
-                    <div class="odd-btn ${selOver ? 'selected' : ''}" onclick="toggleBet(${match.id}, '${escJs(overLabel)}', ${match.markets.overUnder.over}, 'Total de Gols')">
-                        <span class="odd-label">Mais Gols</span>
-                        <span class="odd-val">${formatOddComma(match.markets.overUnder.over)}</span>
-                    </div>
-                    <div class="odd-btn ${selUnder ? 'selected' : ''}" onclick="toggleBet(${match.id}, '${escJs(underLabel)}', ${match.markets.overUnder.under}, 'Total de Gols')">
-                        <span class="odd-label">Menos Gols</span>
-                        <span class="odd-val">${formatOddComma(match.markets.overUnder.under)}</span>
-                    </div>
-                </div>
+        ${visibleBlocks.length === 0 ? `
+            <div style="padding:24px; text-align:center; background:var(--card-item-bg); border:1px solid var(--card-item-border); border-radius:6px; color:var(--text-muted);">
+                Nenhum mercado encontrado para "<strong>${marketSearchQuery}</strong>".
             </div>
-
-            <div class="mc-market-card">
-                <div class="mc-market-header">
-                    <span>🥅 ${match.markets.btts.label}</span>
-                    <span style="font-size:11px; color:var(--brand-gold);">Ambas Equipes</span>
-                </div>
-                <div class="mc-market-grid-2">
-                    <div class="odd-btn ${selBttsYes ? 'selected' : ''}" onclick="toggleBet(${match.id}, 'Ambos Marcam: Sim', ${match.markets.btts.yes}, 'Ambos Marcam')">
-                        <span class="odd-label">Sim (Ambos Marcam)</span>
-                        <span class="odd-val">${formatOddComma(match.markets.btts.yes)}</span>
-                    </div>
-                    <div class="odd-btn ${selBttsNo ? 'selected' : ''}" onclick="toggleBet(${match.id}, 'Ambos Marcam: Não', ${match.markets.btts.no}, 'Ambos Marcam')">
-                        <span class="odd-label">Não</span>
-                        <span class="odd-val">${formatOddComma(match.markets.btts.no)}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-            <div class="mc-market-card">
-                <div class="mc-market-header">
-                    <span>🔥 ${match.markets.nextGoal.label}</span>
-                    <span style="font-size:11px; color:var(--brand-gold);">Tempo Real</span>
-                </div>
-                <div class="mc-market-grid-3">
-                    <div class="odd-btn ${isBetSelected(match.id, nextGoalHomeLabel) ? 'selected' : ''}" onclick="toggleBet(${match.id}, '${escJs(nextGoalHomeLabel)}', ${match.markets.nextGoal.home}, '${escJs(match.markets.nextGoal.label)}')">
-                        <span class="odd-label">${match.teamA}</span>
-                        <span class="odd-val">${formatOddComma(match.markets.nextGoal.home)}</span>
-                    </div>
-                    <div class="odd-btn ${isBetSelected(match.id, 'Sem Mais Gols') ? 'selected' : ''}" onclick="toggleBet(${match.id}, 'Sem Mais Gols', ${match.markets.nextGoal.none}, '${escJs(match.markets.nextGoal.label)}')">
-                        <span class="odd-label">Sem Gol</span>
-                        <span class="odd-val">${formatOddComma(match.markets.nextGoal.none)}</span>
-                    </div>
-                    <div class="odd-btn ${isBetSelected(match.id, nextGoalAwayLabel) ? 'selected' : ''}" onclick="toggleBet(${match.id}, '${escJs(nextGoalAwayLabel)}', ${match.markets.nextGoal.away}, '${escJs(match.markets.nextGoal.label)}')">
-                        <span class="odd-label">${match.teamB}</span>
-                        <span class="odd-val">${formatOddComma(match.markets.nextGoal.away)}</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mc-market-card">
-                <div class="mc-market-header">
-                    <span>🛡️ ${match.markets.doubleChance.label}</span>
-                    <span style="font-size:11px; color:var(--brand-gold);">Dupla Chance</span>
-                </div>
-                <div class="mc-market-grid-3">
-                    <div class="odd-btn ${isBetSelected(match.id, dc1XLabel) ? 'selected' : ''}" onclick="toggleBet(${match.id}, '${escJs(dc1XLabel)}', ${match.markets.doubleChance.oneX}, 'Dupla Hipótese')">
-                        <span class="odd-label">Casa ou Empate (1X)</span>
-                        <span class="odd-val">${formatOddComma(match.markets.doubleChance.oneX)}</span>
-                    </div>
-                    <div class="odd-btn ${isBetSelected(match.id, dc12Label) ? 'selected' : ''}" onclick="toggleBet(${match.id}, '${escJs(dc12Label)}', ${match.markets.doubleChance.oneTwo}, 'Dupla Hipótese')">
-                        <span class="odd-label">Casa ou Fora (12)</span>
-                        <span class="odd-val">${formatOddComma(match.markets.doubleChance.oneTwo)}</span>
-                    </div>
-                    <div class="odd-btn ${isBetSelected(match.id, dcX2Label) ? 'selected' : ''}" onclick="toggleBet(${match.id}, '${escJs(dcX2Label)}', ${match.markets.doubleChance.xTwo}, 'Dupla Hipótese')">
-                        <span class="odd-label">Empate ou Fora (X2)</span>
-                        <span class="odd-val">${formatOddComma(match.markets.doubleChance.xTwo)}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-            <div class="mc-market-card">
-                <div class="mc-market-header">
-                    <span>🚩 ${match.markets.corners.label}</span>
-                    <span style="font-size:11px; color:var(--brand-gold);">Escanteios</span>
-                </div>
-                <div class="mc-market-grid-2">
-                    <div class="odd-btn ${selCornOver ? 'selected' : ''}" onclick="toggleBet(${match.id}, '${escJs(cornOverLabel)}', ${match.markets.corners.over}, 'Escanteios')">
-                        <span class="odd-label">Mais Escanteios</span>
-                        <span class="odd-val">${formatOddComma(match.markets.corners.over)}</span>
-                    </div>
-                    <div class="odd-btn ${selCornUnder ? 'selected' : ''}" onclick="toggleBet(${match.id}, '${escJs(cornUnderLabel)}', ${match.markets.corners.under}, 'Escanteios')">
-                        <span class="odd-label">Menos Escanteios</span>
-                        <span class="odd-val">${formatOddComma(match.markets.corners.under)}</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mc-market-card">
-                <div class="mc-market-header">
-                    <span>🔢 Placar Exato da Partida</span>
-                    <span style="font-size:11px; color:var(--brand-gold);">Super Cotação</span>
-                </div>
-                <div class="mc-market-grid-4">
-                    ${(match.markets.exactScore || []).map(sc => {
-                        const scLabel = `Placar Exato ${sc.label}`;
-                        return `
-                            <div class="odd-btn ${isBetSelected(match.id, scLabel) ? 'selected' : ''}" onclick="toggleBet(${match.id}, '${escJs(scLabel)}', ${sc.odd}, 'Placar Exato')">
-                                <span class="odd-label">${sc.label}</span>
-                                <span class="odd-val">${formatOddComma(sc.odd)}</span>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-            </div>
-        </div>
-
-        <div class="mc-market-card">
-            <div class="mc-market-header">
-                <span>👟 Jogador para Marcar a Qualquer Momento</span>
-                <span style="font-size:11px; color:var(--brand-gold);">⭐ Atletas Escalados / Destaques</span>
-            </div>
-            <div class="mc-market-grid-4">
-                <div class="odd-btn ${isBetSelected(match.id, `Gol: ${starA}`) ? 'selected' : ''}" onclick="toggleBet(${match.id}, '${escJs(`Gol: ${starA}`)}', 2.30, 'Artilheiro')">
-                    <span class="odd-label">${starA}</span>
-                    <span class="odd-val">2,30</span>
-                </div>
-                <div class="odd-btn ${isBetSelected(match.id, `Gol: ${starA2}`) ? 'selected' : ''}" onclick="toggleBet(${match.id}, '${escJs(`Gol: ${starA2}`)}', 2.95, 'Artilheiro')">
-                    <span class="odd-label">${starA2}</span>
-                    <span class="odd-val">2,95</span>
-                </div>
-                <div class="odd-btn ${isBetSelected(match.id, `Gol: ${starB}`) ? 'selected' : ''}" onclick="toggleBet(${match.id}, '${escJs(`Gol: ${starB}`)}', 2.55, 'Artilheiro')">
-                    <span class="odd-label">${starB}</span>
-                    <span class="odd-val">2,55</span>
-                </div>
-                <div class="odd-btn ${isBetSelected(match.id, `Gol: ${starB2}`) ? 'selected' : ''}" onclick="toggleBet(${match.id}, '${escJs(`Gol: ${starB2}`)}', 3.30, 'Artilheiro')">
-                    <span class="odd-label">${starB2}</span>
-                    <span class="odd-val">3,30</span>
-                </div>
-            </div>
-        </div>
+        ` : cardsHtml}
     `;
 }
 
@@ -2105,6 +2886,21 @@ function switchBetslipView(view) {
     updateBetslip();
 }
 
+function updateMobileBetslipFab(count, totalOdd) {
+    const countEl = document.getElementById('mbf-count');
+    const subEl = document.getElementById('mbf-sub');
+    const oddEl = document.getElementById('mbf-odd');
+    const fabEl = document.getElementById('mobile-betslip-fab');
+    if (countEl) countEl.innerText = count;
+    if (subEl) {
+        subEl.innerText = count === 0
+            ? 'Toque nas cotações para apostar'
+            : `${count} ${count === 1 ? 'jogo selecionado' : 'jogos selecionados'} • Finalizar / PIN`;
+    }
+    if (oddEl) oddEl.innerText = `Odd ${formatOddComma(totalOdd)}`;
+    if (fabEl) fabEl.classList.toggle('has-items', count > 0);
+}
+
 function updateBetslip() {
     const { betslip, placedBetsHistory, activeBetslipView, matches } = window.BetProData;
     const itemsContainer = document.getElementById('betslip-items');
@@ -2112,6 +2908,9 @@ function updateBetslip() {
     const betTypeLabel = document.getElementById('bet-type-label');
     document.getElementById('betslip-count').innerText = betslip.length;
     document.getElementById('history-count').innerText = placedBetsHistory.length;
+
+    const currentTotalOdd = betslip.reduce((acc, b) => acc * (Number(b.oddValue) || 1), 1);
+    updateMobileBetslipFab(betslip.length, betslip.length > 0 ? currentTotalOdd : 1);
 
     if (activeBetslipView === 'history') {
         if (placedBetsHistory.length === 0) {
