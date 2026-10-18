@@ -1,0 +1,2688 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&family=Roboto:wght@400;500;700;900&family=JetBrains+Mono:wght@600;700;800&display=swap');
+
+/* ============================================================================
+   VARIÁVEIS OFICIAIS 365 DA BARRA (DARK THEME PADRÃO + LIGHT THEME COMPLETO)
+   Extraídas diretamente de https://365dabarra-net.jogos.app/
+   ============================================================================ */
+:root {
+    /* Cores de Marca 365 DA BARRA */
+    --brand-purple: #3b2a6f;
+    --brand-purple-dark: #281c4f;
+    --brand-purple-hover: #00115f;
+    --brand-red-selected: #C9302C;
+    --brand-gold: #ffc400;
+    --brand-gold-btn: rgb(255, 182, 66);
+    --brand-green-pin: #34ca73;
+    --brand-green-dark: #279f58;
+
+    /* Superfícies Tema Escuro (Refinado sobre o theme-dark.css original #2C2C2C / #444444) */
+    --bg-dark: #222327;
+    --bg-panel: #2c2e35;
+    --bg-panel-alt: #363942;
+    --bg-elevated: #40444f;
+    --bg-hover: #4a4f5c;
+
+    /* Mapeamento de variáveis compatíveis */
+    --primary: #ffc400;
+    --primary-hover: #ffd740;
+    --primary-glow: rgba(255, 196, 0, 0.28);
+    --accent-green: #34ca73;
+    --accent-green-glow: rgba(52, 202, 115, 0.25);
+    --accent-red: #C9302C;
+    --accent-yellow: #ffc400;
+    --accent-blue: #29b6f6;
+
+    --text-main: #FFFFFF;
+    --text-secondary: #E2E8F0;
+    --text-muted: #B0B8C4;
+
+    --border-color: rgba(255, 255, 255, 0.11);
+    --border-strong: rgba(255, 255, 255, 0.20);
+
+    /* Variáveis dos Cards de Jogos 365 DA BARRA */
+    --eventlist-country-bg: #3b2a6f;
+    --eventlist-country-text: #FFFFFF;
+    --card-item-bg: #383b44;
+    --card-item-hover: #424651;
+    --card-item-border: #4f5360;
+    --card-item-text: #FFFFFF;
+    --odd-box-bg: #26282e;
+    --odd-box-text: #FFFFFF;
+    --odd-divider: rgba(255, 255, 255, 0.22);
+    --odd-selected-bg: #C9302C;
+    --odd-selected-text: #FFFFFF;
+    --total-outcomes-bg: rgb(255, 182, 66);
+    --total-outcomes-text: #1b1433;
+
+    /* Variáveis da Sidebar 365 DA BARRA */
+    --sidebar-menu-bg: #383b44;
+    --sidebar-menu-text: #FFFFFF;
+    --sidebar-sub-bg: #2f323a;
+    --sidebar-item-bg: #25272d;
+    --sidebar-selected-bg: #ffc400;
+    --sidebar-selected-text: #1c1436;
+
+    /* Variáveis do Betslip 365 DA BARRA */
+    --betslip-header-bg: #3b2a6f;
+    --betslip-body-bg: #2c2e35;
+    --betslip-item-header-bg: #3b2a6f;
+    --betslip-item-body-bg: #383b44;
+    --betslip-footer-bg: #343740;
+    --betslip-pin-bg: #34ca73;
+
+    --odd-bg: #26282e;
+    --odd-hover: #3b2a6f;
+    --radius-sm: 5px;
+    --radius-md: 6px;
+    --radius-lg: 10px;
+    --shadow-card: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+/* ============================================================================
+   TEMA CLARO OFICIAL 365 DA BARRA (theme-light.css original #ECECEC / #FFFFFF)
+   ============================================================================ */
+body.theme-light {
+    --bg-dark: #ECECEC;
+    --bg-panel: #FFFFFF;
+    --bg-panel-alt: #F4F4F6;
+    --bg-elevated: #E4E4E8;
+    --bg-hover: #DCDCE2;
+
+    --primary: #3b2a6f;
+    --text-main: #222222;
+    --text-secondary: #333333;
+    --text-muted: #666666;
+
+    --border-color: #CCCCCC;
+    --border-strong: #B0B0B0;
+
+    --card-item-bg: #FFFFFF;
+    --card-item-hover: #F7F5FC;
+    --card-item-border: #CCCCCC;
+    --card-item-text: #222222;
+    --odd-box-bg: #3b2a6f;
+    --odd-box-text: #FFFFFF;
+    --odd-divider: rgba(255, 255, 255, 0.35);
+    --odd-selected-bg: #C9302C;
+    --odd-selected-text: #FFFFFF;
+    --total-outcomes-bg: rgb(255, 182, 66);
+    --total-outcomes-text: #FFFFFF;
+
+    --sidebar-menu-bg: #FFFFFF;
+    --sidebar-menu-text: #222222;
+    --sidebar-sub-bg: #E2E2E2;
+    --sidebar-item-bg: #F5F5F5;
+    --sidebar-selected-bg: rgb(255, 182, 66);
+    --sidebar-selected-text: #FFFFFF;
+
+    --betslip-header-bg: #3b2a6f;
+    --betslip-body-bg: #FFFFFF;
+    --betslip-item-header-bg: #3b2a6f;
+    --betslip-item-body-bg: #F9F9FB;
+    --betslip-footer-bg: #FFFFFF;
+
+    --odd-bg: #3b2a6f;
+    --odd-hover: #00115f;
+    --shadow-card: 0 4px 14px rgba(0, 0, 0, 0.10);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    user-select: none;
+}
+
+/* Scrollbar Estilo 365 DA BARRA */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-dark);
+}
+::-webkit-scrollbar-thumb {
+    background: #555866;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--brand-purple);
+}
+
+/* ============================================================================
+   CABEÇALHO SUPERIOR OFICIAL (.header de 365dabarra-net.jogos.app)
+   ============================================================================ */
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+    width: 100%;
+    height: 52px;
+    background-color: var(--brand-purple);
+    background-image: linear-gradient(90deg, #3b2a6f 0%, #2b1d54 55%, #3b2a6f 100%);
+    color: #FFFFFF;
+    border-bottom: 2px solid rgba(255, 196, 0, 0.45);
+    flex-shrink: 0;
+    z-index: 50;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+}
+
+.header .title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 20px;
+    font-weight: 900;
+    color: #FFFFFF;
+    letter-spacing: 0.4px;
+}
+
+.header-live-pill {
+    background: rgba(0, 0, 0, 0.32);
+    border: 1px solid rgba(255, 196, 0, 0.45);
+    color: var(--brand-gold);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 14px;
+}
+
+.top-nav {
+    display: flex;
+    gap: 4px;
+}
+
+.top-nav a {
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 15px 12px;
+    border-bottom: 3px solid transparent;
+    transition: all 0.18s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.top-nav a:hover {
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.top-nav a.active {
+    color: var(--brand-gold);
+    border-bottom-color: var(--brand-gold);
+    background: rgba(0, 0, 0, 0.18);
+}
+
+.live-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #ff3d57;
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulseDot 1.4s infinite;
+    flex-shrink: 0;
+}
+
+@keyframes pulseDot {
+    0% { box-shadow: 0 0 0 0 rgba(255, 61, 87, 0.85); }
+    70% { box-shadow: 0 0 0 7px rgba(255, 61, 87, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 61, 87, 0); }
+}
+
+.user-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.theme-toggle-btn {
+    background: rgba(0, 0, 0, 0.28);
+    color: var(--brand-gold);
+    border: 1px solid rgba(255, 196, 0, 0.45);
+    padding: 6px 11px;
+    border-radius: 5px;
+    font-size: 11.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.15s;
+}
+
+.theme-toggle-btn:hover {
+    background: var(--brand-gold);
+    color: #1c1436;
+}
+
+.client-select {
+    background: rgba(0, 0, 0, 0.30);
+    color: #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    padding: 6px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 700;
+    outline: none;
+    cursor: pointer;
+}
+
+.client-select option {
+    background: #2c2e35;
+    color: #FFFFFF;
+}
+
+.wallet-box {
+    background: rgba(0, 0, 0, 0.32);
+    border: 1px solid rgba(52, 202, 115, 0.55);
+    padding: 3px 12px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.wallet-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.78);
+    display: block;
+    font-weight: 700;
+}
+
+.wallet-balance {
+    font-size: 13.5px;
+    font-weight: 900;
+    color: #34ca73;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.btn-deposit {
+    background: var(--brand-gold-btn);
+    color: #1b1433;
+    border: none;
+    padding: 7px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 900;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.15s;
+}
+
+.btn-deposit:hover {
+    background: #ffc400;
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.14);
+    color: #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    padding: 7px 11px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.15s;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.24);
+}
+
+/* ============================================================================
+   ESTRUTURA 3 COLUNAS (SIDEBAR 235px | CONTAINER BETS 1fr | BETSLIP 300px)
+   ============================================================================ */
+.main-container {
+    display: grid;
+    grid-template-columns: 235px 1fr 305px;
+    flex: 1;
+    overflow: hidden;
+    gap: 10px;
+    padding: 10px;
+}
+
+/* ============================================================================
+   COLUNA ESQUERDA: SIDEBAR OFICIAL 365 DA BARRA (.sidebar)
+   ============================================================================ */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 2px;
+}
+
+.sidebar-logo-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    padding: 6px;
+    cursor: pointer;
+    transition: transform 0.18s ease;
+}
+
+.sidebar-logo-box:hover {
+    transform: scale(1.03);
+}
+
+.sidebar-logo-box img {
+    width: 175px;
+    max-height: 155px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
+}
+
+.sidebar .menu {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Botões Grandes da Sidebar (.menuSingle e .menuMulti-main) */
+.sidebar .menu .menuSingle,
+.sidebar .menu .menuMulti .menuMulti-main {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 0 12px;
+    width: 100%;
+    height: 46px;
+    border-radius: 5px;
+    background-color: var(--sidebar-menu-bg);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+.sidebar .menu .menuSingle:hover,
+.sidebar .menu .menuMulti .menuMulti-main:hover {
+    border-color: var(--brand-purple);
+    filter: brightness(1.06);
+}
+
+.sidebar .menu .menuSingle .boxIcon,
+.sidebar .menu .menuMulti .menuMulti-main .boxIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+}
+
+.sidebar .menu .menuSingle i,
+.sidebar .menu .menuMulti .menuMulti-main i {
+    font-size: 18px;
+    color: var(--sidebar-menu-text);
+}
+
+.sidebar .menu .menuSingle .title,
+.sidebar .menu .menuMulti .menuMulti-main .title {
+    margin-left: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--sidebar-menu-text);
+    flex: 1;
+}
+
+.sidebar .menu .menuSingle.active,
+.sidebar .menu .menuMulti .menuMulti-main.selected {
+    background-color: var(--brand-purple);
+    border-color: var(--brand-gold);
+}
+
+.sidebar .menu .menuSingle.active .title,
+.sidebar .menu .menuSingle.active i,
+.sidebar .menu .menuMulti .menuMulti-main.selected .title,
+.sidebar .menu .menuMulti .menuMulti-main.selected i {
+    color: #FFFFFF;
+}
+
+.menu-arrow {
+    font-size: 12px !important;
+    opacity: 0.8;
+}
+
+/* Sub-acordeões de Países e Ligas (.menuMulti-items & .subMenuMulti) */
+.sidebar .menu .menuMulti .menuMulti-items {
+    display: flex;
+    flex-direction: column;
+    margin-top: -6px;
+    margin-bottom: 8px;
+    border-radius: 0 0 5px 5px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    border-top: none;
+}
+
+.subMenuMulti-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    width: 100%;
+    height: 36px;
+    background-color: var(--sidebar-sub-bg);
+    border-bottom: 1px solid var(--border-color);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-main);
+    cursor: pointer;
+}
+
+.subMenuMulti-title:hover {
+    background-color: var(--bg-hover);
+}
+
+.subMenuMulti-items .item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 12px 7px 18px;
+    width: 100%;
+    min-height: 34px;
+    background-color: var(--sidebar-item-bg);
+    border-bottom: 1px solid var(--border-color);
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.14s;
+}
+
+.subMenuMulti-items .item:hover {
+    background-color: var(--bg-hover);
+    color: var(--text-main);
+}
+
+.subMenuMulti-items .item.active {
+    background-color: var(--brand-gold-btn);
+    color: #1b1433;
+    font-weight: 900;
+}
+
+.subMenuMulti-items .item.active .name {
+    color: #1b1433;
+    font-weight: 900;
+}
+
+.badge-count {
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--text-main);
+    font-size: 10.5px;
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-weight: 800;
+}
+
+body.theme-light .badge-count {
+    background: rgba(0, 0, 0, 0.10);
+    color: #222;
+}
+
+.badge-count.live {
+    background: var(--brand-red-selected);
+    color: #FFFFFF;
+}
+
+.btnSidebarAction {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    width: 100%;
+    height: 44px;
+    border: none;
+    border-radius: 5px;
+    background-color: var(--brand-purple);
+    color: #FFFFFF;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s;
+}
+
+.btnSidebarAction:hover {
+    background-color: var(--brand-purple-hover);
+}
+
+.menuBoxInfo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    width: 100%;
+    border-radius: 5px;
+    background-color: var(--sidebar-menu-bg);
+    border: 1px solid var(--border-color);
+    text-align: center;
+    font-size: 11.5px;
+    color: var(--text-muted);
+    line-height: 1.45;
+    flex-shrink: 0;
+}
+
+.menuBoxInfo span strong {
+    color: var(--brand-gold);
+    font-size: 12.5px;
+}
+
+body.theme-light .menuBoxInfo span strong {
+    color: var(--brand-purple);
+}
+
+/* ============================================================================
+   COLUNA CENTRAL: CONTAINER DE APOSTAS (.containerBets)
+   ============================================================================ */
+.content.containerBets {
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-right: 4px;
+}
+
+/* Banners Superiores (Estilo 365 DA BARRA) */
+.hero-banners {
+    display: grid;
+    grid-template-columns: 1.45fr 1fr;
+    gap: 10px;
+}
+
+.hero-card {
+    background: linear-gradient(135deg, #3b2a6f 0%, #1f153d 65%, #2d1e59 100%);
+    border: 1px solid rgba(255, 196, 0, 0.38);
+    border-radius: 5px;
+    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: #FFFFFF;
+    box-shadow: var(--shadow-card);
+}
+
+.hero-card.alt {
+    background: linear-gradient(135deg, #1b3b2b 0%, #12261c 65%, #1d4d35 100%);
+    border-color: rgba(52, 202, 115, 0.40);
+}
+
+.hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--brand-red-selected);
+    color: #FFFFFF;
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    width: fit-content;
+    margin-bottom: 6px;
+}
+
+.hero-card h2 {
+    font-size: 16px;
+    font-weight: 900;
+    margin-bottom: 4px;
+    color: #FFFFFF;
+}
+
+.hero-card p {
+    font-size: 11.5px;
+    color: rgba(255, 255, 255, 0.85);
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+.hero-cta {
+    background: var(--brand-gold-btn);
+    color: #1b1433;
+    border: none;
+    padding: 7px 14px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 900;
+    cursor: pointer;
+    width: fit-content;
+    transition: all 0.15s ease;
+}
+
+.hero-cta:hover {
+    background: #ffc400;
+    transform: translateY(-1px);
+}
+
+/* ============================================================================
+   BARRA DE DATA / ESPORTE E BUSCA (.dateEventAndSearch da 365 DA BARRA)
+   ============================================================================ */
+.dateEventAndSearch {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 46px;
+    background-color: var(--card-item-bg);
+    border: 1px solid var(--card-item-border);
+    border-radius: 5px;
+    padding: 6px 12px;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.dateEventAndSearch .dateEvent {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.dateEventAndSearch .dateEvent .boxIcon i {
+    font-size: 20px;
+    color: var(--brand-gold);
+}
+
+body.theme-light .dateEventAndSearch .dateEvent .boxIcon i {
+    color: var(--brand-purple);
+}
+
+.dateEventAndSearch .dateEvent .sportName {
+    font-family: 'Roboto Slab', serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text-main);
+}
+
+.dateEventAndSearch .search {
+    display: flex;
+    align-items: center;
+    width: 290px;
+    height: 36px;
+    border-radius: 5px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+.dateEventAndSearch .search input[type=text] {
+    padding: 0 12px;
+    width: calc(100% - 42px);
+    height: 100%;
+    border: none;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-size: 12.5px;
+    outline: none;
+}
+
+.dateEventAndSearch .search button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 100%;
+    border: none;
+    background-color: var(--brand-purple);
+    color: #FFFFFF;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.dateEventAndSearch .search button:hover {
+    background-color: var(--brand-purple-hover);
+}
+
+/* Status Subfilters & League Filter Pills */
+.status-subfilters {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-dark);
+    padding: 3px;
+    border-radius: 5px;
+    border: 1px solid var(--border-color);
+}
+
+.status-subfilter-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 9px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.status-subfilter-btn.active {
+    background: var(--brand-purple);
+    color: #FFFFFF;
+}
+
+.filter-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    background: var(--card-item-bg);
+    padding: 8px 12px;
+    border-radius: 5px;
+    border: 1px solid var(--card-item-border);
+    flex-wrap: wrap;
+}
+
+.filter-pills {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.filter-pill {
+    background: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 5px 11px;
+    border-radius: 5px;
+    font-size: 11.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.filter-pill:hover {
+    border-color: var(--brand-purple);
+}
+
+.filter-pill.active {
+    background: var(--brand-purple);
+    border-color: var(--brand-gold);
+    color: #FFFFFF;
+}
+
+/* ============================================================================
+   LISTA DE JOGOS OFICIAL 365 DA BARRA (.eventlistContainer / .pais / .cardItem3)
+   ============================================================================ */
+.eventlistContainer {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+}
+
+.eventlistContainer .pais {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+}
+
+/* Barra Roxa do Campeonato (.eventlist-country) */
+.eventlistContainer .eventlist-country {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 0 12px;
+    width: 100%;
+    height: 34px;
+    background-color: var(--eventlist-country-bg);
+    background-image: linear-gradient(90deg, #3b2a6f 0%, #2c1e56 100%);
+    color: var(--eventlist-country-text);
+    cursor: pointer;
+    user-select: none;
+}
+
+.eventlistContainer .eventlist-country .name {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.eventlistContainer .eventlist-country .titleMarkets {
+    display: grid;
+    margin-left: auto;
+    margin-right: 86px;
+    width: 234px;
+    height: 100%;
+}
+
+.eventlistContainer .eventlist-country .titleMarkets3 {
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+.eventlistContainer .eventlist-country .titleMarkets .item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+/* Linha de Partida (.cardItem .cardItem3) */
+.eventlistContainer .containerCards {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.eventlistContainer .containerCards .cardItem {
+    display: grid;
+    grid-gap: 10px;
+    padding: 8px 12px;
+    width: 100%;
+    min-height: 68px;
+    background-color: var(--card-item-bg);
+    border-bottom: 1px solid var(--card-item-border);
+    align-items: center;
+    transition: all 0.15s ease;
+    cursor: pointer;
+}
+
+.eventlistContainer .containerCards .cardItem:hover {
+    background-color: var(--card-item-hover);
+}
+
+.eventlistContainer .containerCards .cardItem3 {
+    grid-template-columns: 82px 1fr 234px 76px;
+}
+
+/* Coluna 1: Data e Hora ou Timer Ao Vivo (.dateAndHour / .timerLive) */
+.eventlistContainer .containerCards .cardItem .dateAndHour {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding-right: 8px;
+}
+
+.eventlistContainer .containerCards .cardItem .dateAndHour::before {
+    position: absolute;
+    content: '';
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 40px;
+    background-color: var(--card-item-border);
+}
+
+.eventlistContainer .containerCards .cardItem .dateAndHour .date {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+.eventlistContainer .containerCards .cardItem .dateAndHour .hour {
+    font-size: 12.5px;
+    font-weight: 900;
+    color: var(--brand-gold);
+    margin-top: 2px;
+}
+
+body.theme-light .eventlistContainer .containerCards .cardItem .dateAndHour .hour {
+    color: var(--brand-purple);
+}
+
+.eventlistContainer .containerCards .cardItem .timerLive {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding-right: 8px;
+}
+
+.eventlistContainer .containerCards .cardItem .timerLive::before {
+    position: absolute;
+    content: '';
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    width: 2px;
+    height: 40px;
+    background-color: var(--brand-red-selected);
+}
+
+.timerLive .live-tag-pill {
+    background: var(--brand-red-selected);
+    color: #FFFFFF;
+    font-size: 9.5px;
+    font-weight: 900;
+    padding: 2px 7px;
+    border-radius: 4px;
+    letter-spacing: 0.3px;
+    margin-bottom: 3px;
+}
+
+.timerLive .live-minute-text {
+    font-size: 12.5px;
+    font-weight: 900;
+    color: var(--brand-gold);
+}
+
+body.theme-light .timerLive .live-minute-text {
+    color: var(--brand-red-selected);
+}
+
+/* Coluna 2: Times e Escudos 25x25 (.teams) */
+.eventlistContainer .containerCards .cardItem .teams {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+}
+
+.eventlistContainer .containerCards .cardItem .teams .team {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 26px;
+}
+
+.eventlistContainer .containerCards .cardItem .teams .team:first-child {
+    margin-bottom: 5px;
+}
+
+.eventlistContainer .containerCards .cardItem .teams .team .logoTeam {
+    margin-right: 8px;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 50%;
+    padding: 2px;
+}
+
+.eventlistContainer .containerCards .cardItem .teams .team .logoTeam img {
+    width: 21px;
+    height: 21px;
+    object-fit: contain;
+}
+
+.eventlistContainer .containerCards .cardItem .teams .team .nameTeam {
+    display: flex;
+    align-items: center;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--card-item-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.eventlistContainer .containerCards .cardItem .teams .team .score {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 26px;
+    height: 22px;
+    margin-left: auto;
+    padding: 0 7px;
+    font-size: 14px;
+    font-weight: 900;
+    color: var(--brand-gold);
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+body.theme-light .eventlistContainer .containerCards .cardItem .teams .team .score {
+    color: var(--brand-purple);
+    background: rgba(59, 42, 111, 0.10);
+}
+
+/* Coluna 3: Cotações Casa / Empate / Fora (.outcomesMain > .boxOdds3) */
+.eventlistContainer .containerCards .cardItem .outcomesMain {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.eventlistContainer .containerCards .cardItem .outcomesMain .boxOdds {
+    display: grid;
+    width: 100%;
+    height: 50px;
+    border-radius: 6px;
+    background-color: var(--odd-box-bg);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.eventlistContainer .containerCards .cardItem .outcomesMain .boxOdds3 {
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+.eventlistContainer .containerCards .cardItem .outcomesMain .boxOdds .odd {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--odd-box-text);
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.14s ease;
+    gap: 1px;
+}
+
+.odd-micro-label {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: rgba(255, 255, 255, 0.62);
+}
+
+.odd-main-val {
+    font-size: 14px;
+    font-weight: 900;
+    color: var(--brand-gold);
+    font-family: 'Roboto', sans-serif;
+}
+
+body.theme-light .odd-main-val {
+    color: #FFFFFF;
+}
+
+.eventlistContainer .containerCards .cardItem .outcomesMain .boxOdds .odd:hover {
+    background-color: var(--brand-purple);
+    color: #FFFFFF;
+}
+
+.eventlistContainer .containerCards .cardItem .outcomesMain .boxOdds .odd:hover .odd-main-val {
+    color: #FFFFFF;
+}
+
+.eventlistContainer .containerCards .cardItem .outcomesMain .boxOdds .odd:first-child::before {
+    position: absolute;
+    content: '';
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 28px;
+    background-color: var(--odd-divider);
+}
+
+.eventlistContainer .containerCards .cardItem .outcomesMain .boxOdds .odd:last-child::before {
+    position: absolute;
+    content: '';
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 28px;
+    background-color: var(--odd-divider);
+}
+
+/* Cotação Selecionada em Vermelho Oficial #C9302C */
+.eventlistContainer .containerCards .cardItem .outcomesMain .boxOdds .odd.oddSelected {
+    background-color: var(--odd-selected-bg) !important;
+    color: var(--odd-selected-text) !important;
+}
+
+.eventlistContainer .containerCards .cardItem .outcomesMain .boxOdds .odd.oddSelected .odd-micro-label,
+.eventlistContainer .containerCards .cardItem .outcomesMain .boxOdds .odd.oddSelected .odd-main-val {
+    color: #FFFFFF !important;
+}
+
+/* Coluna 4: Botão Dourado de Total de Mercados + Campo 3D (.totalOutcomes-button) */
+.eventlistContainer .containerCards .cardItem .totalOutcomes {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.eventlistContainer .containerCards .cardItem .totalOutcomes .totalOutcomes-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 50px;
+    font-size: 13px;
+    font-weight: 900;
+    color: #1b1433;
+    background-color: var(--total-outcomes-bg);
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s ease;
+    line-height: 1.15;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.eventlistContainer .containerCards .cardItem .totalOutcomes .totalOutcomes-button:hover {
+    background-color: #ffc400;
+    transform: translateY(-1px);
+}
+
+/* Botões de Odd dentro do Match Center (.odd-btn) também no padrão 365 DA BARRA */
+.odd-btn {
+    background-color: var(--odd-box-bg);
+    color: var(--odd-box-text);
+    border: 1px solid var(--border-color);
+    padding: 8px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    min-width: 78px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    transition: all 0.15s ease;
+}
+
+.odd-btn:hover {
+    background-color: var(--brand-purple);
+    color: #FFFFFF;
+}
+
+.odd-btn.selected {
+    background-color: var(--brand-red-selected) !important;
+    border-color: var(--brand-red-selected) !important;
+    color: #FFFFFF !important;
+}
+
+.odd-btn .odd-label {
+    font-size: 10.5px;
+    color: rgba(255, 255, 255, 0.78);
+    font-weight: 700;
+    max-width: 130px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.odd-btn.selected .odd-label {
+    color: #FFFFFF;
+}
+
+.odd-btn .odd-val {
+    font-size: 14px;
+    font-weight: 900;
+    color: var(--brand-gold);
+}
+
+.odd-btn.selected .odd-val {
+    color: #FFFFFF;
+}
+
+/* ============================================================================
+   MATCH CENTER VIEW (CAMPO 3D VETORIAL + ESTATÍSTICAS + MERCADOS 365 DA BARRA)
+   ============================================================================ */
+.match-center-view {
+    display: none;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.match-center-view.active {
+    display: flex;
+}
+
+.mc-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--card-item-bg);
+    padding: 10px 14px;
+    border-radius: 5px;
+    border: 1px solid var(--card-item-border);
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.back-to-list-btn {
+    background: var(--brand-purple);
+    color: #FFFFFF;
+    border: none;
+    padding: 7px 14px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s;
+}
+
+.back-to-list-btn:hover {
+    background: var(--brand-purple-hover);
+}
+
+.mc-live-arena {
+    background: #14161b;
+    border: 1px solid var(--card-item-border);
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+}
+
+.mc-scoreboard-banner {
+    background: linear-gradient(90deg, #281c4f 0%, #3b2a6f 50%, #281c4f 100%);
+    padding: 14px 24px;
+    border-bottom: 2px solid var(--brand-gold);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 28px;
+    color: #FFFFFF;
+}
+
+.mc-team-block {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+}
+
+.mc-team-block.home {
+    justify-content: flex-end;
+    text-align: right;
+}
+
+.mc-team-block.away {
+    justify-content: flex-start;
+    text-align: left;
+}
+
+.mc-team-logo {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+}
+
+.mc-team-title {
+    font-size: 17px;
+    font-weight: 900;
+    color: #FFFFFF;
+}
+
+.mc-team-meta {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.78);
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+.mc-score-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 185px;
+}
+
+.mc-live-pill {
+    background: var(--brand-red-selected);
+    color: #FFFFFF;
+    font-size: 10.5px;
+    font-weight: 800;
+    padding: 3px 11px;
+    border-radius: 12px;
+    margin-bottom: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.mc-score-pill {
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(255, 196, 0, 0.5);
+    padding: 5px 22px;
+    border-radius: 6px;
+    font-size: 26px;
+    font-weight: 900;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 3px;
+    color: var(--brand-gold);
+}
+
+.mc-stadium-sub {
+    font-size: 10.5px;
+    color: rgba(255, 255, 255, 0.80);
+    margin-top: 5px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.mc-arena-grid {
+    display: grid;
+    grid-template-columns: 1.38fr 1fr;
+    min-height: 390px;
+}
+
+.mc-pitch-column {
+    padding: 14px 16px;
+    background: radial-gradient(ellipse at 50% 10%, #1d2636 0%, #0b0e14 75%);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.stadium-stage {
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 4px 0 10px 0;
+}
+
+.pitch-broadcast-hud {
+    width: 94%;
+    background: rgba(16, 18, 26, 0.94);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-left: 4px solid #34ca73;
+    border-radius: 6px;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+    z-index: 5;
+}
+
+.pitch-broadcast-hud.away-mode {
+    border-left-color: #29b6f6;
+}
+
+.pitch-broadcast-hud.danger-mode {
+    border-left-color: #C9302C;
+    background: linear-gradient(90deg, rgba(201, 48, 44, 0.22) 0%, rgba(16, 18, 26, 0.95) 50%);
+}
+
+.hud-status-badge {
+    background: rgba(52, 202, 115, 0.18);
+    color: #34ca73;
+    border: 1px solid rgba(52, 202, 115, 0.4);
+    font-size: 10px;
+    font-weight: 900;
+    padding: 4px 9px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+.pitch-broadcast-hud.away-mode .hud-status-badge {
+    background: rgba(41, 182, 246, 0.18);
+    color: #29b6f6;
+    border-color: rgba(41, 182, 246, 0.4);
+}
+
+.pitch-broadcast-hud.danger-mode .hud-status-badge {
+    background: rgba(201, 48, 44, 0.28);
+    color: #ff6b68;
+    border-color: rgba(201, 48, 44, 0.55);
+}
+
+.hud-texts {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.hud-main-title {
+    font-size: 12px;
+    font-weight: 900;
+    color: #ffffff;
+}
+
+.hud-sub-desc {
+    font-size: 11px;
+    color: #cbd5e1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.stadium-led-board {
+    width: 88%;
+    background: linear-gradient(90deg, #281c4f 0%, #3b2a6f 50%, #281c4f 100%);
+    border: 1px solid rgba(255, 196, 0, 0.45);
+    border-bottom: 2px solid var(--brand-gold);
+    border-radius: 5px 5px 0 0;
+    padding: 3px 14px;
+    display: flex;
+    justify-content: space-around;
+    font-size: 9.5px;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+}
+
+.pitch-3d-wrap {
+    position: relative;
+    width: 96%;
+    max-width: 680px;
+    transition: transform 0.35s ease, box-shadow 0.35s ease;
+    border-radius: 10px;
+}
+
+.pitch-3d-wrap.perspective-3d {
+    transform: perspective(950px) rotateX(22deg) scale(0.97);
+    transform-origin: center center;
+    box-shadow: 0 12px 0 #0b2416, 0 22px 38px rgba(0, 0, 0, 0.85);
+}
+
+#pitch-svg {
+    width: 100%;
+    height: auto;
+    max-height: 295px;
+    display: block;
+    border-radius: 10px;
+    border: 2px solid #235c3a;
+}
+
+.ball-Floating-tag {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -135%);
+    background: rgba(15, 20, 30, 0.94);
+    border: 1px solid var(--brand-gold);
+    color: #ffffff;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 10.5px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.ball-tag-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--brand-gold);
+}
+
+.goal-celebration-banner {
+    position: absolute;
+    inset: 0;
+    background: rgba(6, 18, 12, 0.88);
+    backdrop-filter: blur(4px);
+    border-radius: 10px;
+    border: 2px solid #34ca73;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+}
+
+.goal-celebration-banner.show,
+.goal-celebration-banner.active {
+    display: flex;
+}
+
+.goal-big-title {
+    font-size: 32px;
+    font-weight: 900;
+    color: #34ca73;
+    letter-spacing: 2px;
+}
+
+.goal-sub-score {
+    font-size: 16px;
+    font-weight: 800;
+    color: #ffffff;
+    margin-top: 6px;
+}
+
+/* Coluna Direita da Arena Ao Vivo: Estatísticas, Lances, Escalações, H2H */
+.mc-info-column {
+    display: flex;
+    flex-direction: column;
+    background: #1c1e24;
+    color: #ffffff;
+}
+
+.tracker-tabs {
+    display: flex;
+    background: #252830;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tracker-tab {
+    flex: 1;
+    text-align: center;
+    padding: 11px 4px;
+    font-size: 11.5px;
+    font-weight: 800;
+    color: #b0b8c4;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.15s;
+}
+
+.tracker-tab:hover {
+    color: #ffffff;
+}
+
+.tracker-tab.active {
+    color: var(--brand-gold);
+    border-bottom-color: var(--brand-gold);
+    background: rgba(59, 42, 111, 0.35);
+}
+
+.tracker-tab-content {
+    padding: 14px 16px;
+    flex: 1;
+    overflow-y: auto;
+    max-height: 325px;
+}
+
+.gauges-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.gauge-card {
+    background: #252830;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 8px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.gauge-title {
+    font-size: 9.5px;
+    color: #b0b8c4;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.gauge-vals {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0 6px;
+    font-size: 13px;
+    font-weight: 900;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.stat-row {
+    margin-bottom: 11px;
+}
+
+.stat-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #ffffff;
+}
+
+.stat-name {
+    color: #b0b8c4;
+}
+
+.stat-bar-bg {
+    height: 6px;
+    background: #323642;
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+}
+
+.stat-bar-home, .stat-bar-away {
+    height: 100%;
+    transition: width 0.4s ease;
+}
+
+.feed-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.feed-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11.5px;
+    padding: 8px 10px;
+    background: #252830;
+    color: #ffffff;
+    border-radius: 5px;
+    border-left: 3px solid var(--brand-purple);
+}
+
+.feed-item.danger { border-left-color: #C9302C; }
+.feed-item.goal { border-left-color: #34ca73; background: rgba(52, 202, 115, 0.12); }
+.feed-item.corner { border-left-color: var(--brand-gold); }
+
+.feed-time {
+    font-weight: 800;
+    color: var(--brand-gold);
+    min-width: 32px;
+}
+
+.lineups-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    font-size: 11.5px;
+}
+
+.lineup-col h4 {
+    font-size: 12px;
+    margin-bottom: 6px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.lineup-player {
+    padding: 3.5px 0;
+    color: #e2e8f0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* Mercados no Match Center (Estilo .eventdetail-market da 365 DA BARRA) */
+.mc-markets-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.mc-market-card {
+    background: var(--card-item-bg);
+    border: 1px solid var(--card-item-border);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.mc-market-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 12px;
+    height: 35px;
+    background-color: var(--brand-purple);
+    color: #FFFFFF;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.mc-market-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 10px;
+}
+
+.mc-market-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    padding: 10px;
+}
+
+.mc-market-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    padding: 10px;
+}
+
+.tracker-ctrl-btn {
+    background: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: 11px;
+    padding: 5px 9px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.tracker-ctrl-btn:hover, .tracker-ctrl-btn.active {
+    color: #FFFFFF;
+    border-color: var(--brand-gold);
+    background: var(--brand-purple);
+}
+
+/* ============================================================================
+   COLUNA DIREITA: CUPOM DE APOSTAS OFICIAL 365 DA BARRA (.betslip)
+   ============================================================================ */
+.right-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.betslip {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--betslip-body-bg);
+    border: 1px solid var(--card-item-border);
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+}
+
+/* Cabeçalho Roxo do Cupom (.betslip-header) */
+.betslip-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    width: 100%;
+    height: 42px;
+    background-color: var(--betslip-header-bg);
+    color: #FFFFFF;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.betslip-tabs {
+    display: flex;
+    gap: 10px;
+    height: 100%;
+}
+
+.betslip-tab {
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.78);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    border-bottom: 3px solid transparent;
+}
+
+.betslip-tab.active {
+    color: #FFFFFF;
+    border-bottom-color: var(--brand-gold);
+}
+
+.betslip-count {
+    background: var(--brand-gold-btn);
+    color: #1b1433;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-weight: 900;
+}
+
+.clear-slip-btn {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.85);
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.clear-slip-btn:hover {
+    color: var(--brand-gold);
+}
+
+/* Corpo do Cupom (.betslip-body) e Cards de Item (.betslip-item) */
+.betslip-body {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background-color: var(--betslip-body-bg);
+}
+
+.betslip-item {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+    width: 100%;
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.betslip-item .card-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 0 0 0 10px;
+    width: 100%;
+    height: 28px;
+    background-color: var(--betslip-item-header-bg);
+}
+
+.betslip-item .card-header .outcomeSelected {
+    font-weight: 700;
+    font-size: 13px;
+    color: #FFFFFF;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.betslip-item .card-header .removeBetslipItem {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    width: 32px;
+    height: 100%;
+    cursor: pointer;
+    color: #FFFFFF;
+}
+
+.betslip-item .card-header .removeBetslipItem:hover {
+    background: var(--brand-red-selected);
+}
+
+.betslip-item .body {
+    display: flex;
+    flex-direction: column;
+    padding: 7px 9px;
+    width: 100%;
+    border: 1px solid var(--card-item-border);
+    border-top: none;
+    border-radius: 0 0 5px 5px;
+    background-color: var(--betslip-item-body-bg);
+}
+
+.betslip-item .body .item {
+    margin: 1.5px 0;
+    font-size: 12.5px;
+    color: var(--text-secondary);
+}
+
+.betslip-item .body .item strong {
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.betslip-item .body .item.itemHightlight strong {
+    color: var(--brand-gold);
+    font-size: 13.5px;
+}
+
+body.theme-light .betslip-item .body .item.itemHightlight strong {
+    color: var(--brand-red-selected);
+}
+
+/* Caixa Verde de PIN Gerado no Betslip (.betslip-pin de 365dabarra-net.jogos.app) */
+.betslip-pin {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    padding: 12px 10px;
+    color: #FFFFFF;
+    background-color: var(--betslip-pin-bg);
+    border: 1px dashed #0a5739;
+    border-radius: 5px;
+    font-size: 13px;
+    text-align: center;
+}
+
+.betslip-pin .title {
+    margin-bottom: 6px;
+    font-weight: 900;
+    font-size: 14px;
+    color: #FFFFFF;
+}
+
+.betslip-pin .code {
+    font-weight: 900;
+    font-size: 18px;
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 8px;
+    background: #279f58;
+    width: 190px;
+    height: 38px;
+    border-radius: 5px;
+    letter-spacing: 2px;
+}
+
+/* Rodapé do Cupom (.betslip-footer) */
+.betslip-footer {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 12px;
+    width: 100%;
+    border-top: 1px solid var(--card-item-border);
+    background-color: var(--betslip-footer-bg);
+    flex-shrink: 0;
+}
+
+.oddAndPossibleReturn {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    width: 100%;
+    height: 36px;
+}
+
+.oddAndPossibleReturn .odd {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.oddAndPossibleReturn .possibleReturn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.oddAndPossibleReturn .odd span,
+.oddAndPossibleReturn .possibleReturn span {
+    font-size: 11.5px;
+    color: var(--text-muted);
+}
+
+.oddAndPossibleReturn .odd span strong,
+.oddAndPossibleReturn .possibleReturn span strong {
+    font-size: 15.5px;
+    font-weight: 900;
+    color: var(--brand-gold);
+}
+
+body.theme-light .oddAndPossibleReturn .odd span strong,
+body.theme-light .oddAndPossibleReturn .possibleReturn span strong {
+    color: var(--brand-purple);
+}
+
+.valueBet {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 8px;
+    width: 100%;
+    height: 38px;
+}
+
+.valueBet .legend {
+    display: flex;
+    align-items: center;
+    margin-right: 8px;
+    width: 120px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+.stake-input {
+    padding: 0 10px;
+    border-radius: 5px;
+    width: 100%;
+    height: 38px;
+    border: 1px solid var(--card-item-border);
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-weight: 700;
+    font-size: 13.5px;
+    outline: none;
+}
+
+.stake-input:focus {
+    border-color: var(--brand-purple);
+}
+
+.quick-stakes {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.quick-stake-btn {
+    flex: 1;
+    background: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 4px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.quick-stake-btn:hover {
+    background: var(--brand-purple);
+    color: #FFFFFF;
+}
+
+.place-bet-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    height: 44px;
+    border-radius: 5px;
+    border: none;
+    color: #FFFFFF;
+    background-color: var(--brand-green-pin);
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.place-bet-btn:hover {
+    background-color: var(--brand-green-dark);
+}
+
+.pin-bet-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    height: 36px;
+    border-radius: 5px;
+    border: none;
+    color: #FFFFFF;
+    background-color: var(--brand-purple);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.pin-bet-btn:hover {
+    background-color: var(--brand-purple-hover);
+}
+
+/* ============================================================================
+   RODAPÉ & MODAIS
+   ============================================================================ */
+.site-footer {
+    margin-top: 12px;
+    padding: 14px 18px;
+    background: var(--card-item-bg);
+    border: 1px solid var(--card-item-border);
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11.5px;
+    color: var(--text-muted);
+}
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 12, 18, 0.80);
+    backdrop-filter: blur(5px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 16px;
+}
+
+.modal-overlay.open {
+    display: flex;
+}
+
+.modal-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-strong);
+    width: 430px;
+    max-width: 95vw;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.modal-close {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    width: 28px;
+    height: 28px;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    background: var(--brand-red-selected);
+    color: #FFFFFF;
+}
+
+.receipt-pin-box {
+    background: var(--brand-green-pin);
+    border: 2px dashed #0a5739;
+    border-radius: 6px;
+    padding: 12px;
+    text-align: center;
+    margin: 12px 0;
+    color: #FFFFFF;
+}
+
+.receipt-pin-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: 4px;
+    color: #FFFFFF;
+}
+
+#toast-container {
+    position: fixed;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.toast {
+    background: var(--brand-purple);
+    border: 1px solid var(--brand-gold);
+    color: #FFFFFF;
+    padding: 11px 20px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-weight: 700;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65);
+}
+
+.article-story-content p {
+    margin-bottom: 12px;
+    line-height: 1.75;
+    color: var(--text-secondary);
+}
+
+/* ============================================================================
+   NOVOS COMPONENTES DE USABILIDADE, CADASTRO DE USUÁRIO E MINHA CONTA
+   ============================================================================ */
+.header-mini-logo {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+}
+
+.brand-title-text {
+    font-size: 18px;
+    font-weight: 900;
+    color: #FFFFFF;
+    letter-spacing: 0.4px;
+    margin-right: 6px;
+}
+
+.user-profile-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.28);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    padding: 4px 10px 4px 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.user-profile-pill:hover {
+    background: rgba(0, 0, 0, 0.42);
+    border-color: var(--brand-gold);
+}
+
+.user-avatar-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--brand-gold);
+    color: #1c1436;
+    font-size: 11px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.user-profile-info {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+}
+
+.user-profile-label {
+    font-size: 9px;
+    color: rgba(255, 255, 255, 0.72);
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.user-profile-name {
+    font-size: 12px;
+    color: #FFFFFF;
+    font-weight: 800;
+    max-width: 135px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.btn-register-top {
+    background: var(--brand-green-pin);
+    color: #FFFFFF;
+    border: none;
+    padding: 7px 11px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.15s ease;
+}
+
+.btn-register-top:hover {
+    background: var(--brand-green-dark);
+    transform: translateY(-1px);
+}
+
+.wallet-box {
+    background: rgba(0, 0, 0, 0.34);
+    border: 1px solid rgba(52, 202, 115, 0.55);
+    padding: 3px 6px 3px 10px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.wallet-add-btn {
+    background: rgba(52, 202, 115, 0.22);
+    border: 1px solid rgba(52, 202, 115, 0.55);
+    color: #FFFFFF;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.15s ease;
+}
+
+.wallet-add-btn:hover {
+    background: var(--brand-green-pin);
+    color: #FFFFFF;
+}
+
+.admin-badge-pill {
+    background: var(--brand-red-selected);
+    color: #FFFFFF;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-size: 10.5px;
+    font-weight: 900;
+}
+
+/* Barra Rápida de Conta na Sidebar */
+.sidebar-user-quickbar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.sb-quick-btn {
+    background: var(--sidebar-menu-bg);
+    color: var(--sidebar-menu-text);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    padding: 8px 6px;
+    font-size: 11.5px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    transition: all 0.15s ease;
+}
+
+.sb-quick-btn:hover {
+    border-color: var(--brand-purple);
+    background: var(--brand-purple);
+    color: #FFFFFF;
+}
+
+.sb-quick-btn.gold {
+    background: var(--brand-gold-btn);
+    color: #1b1433;
+    border-color: transparent;
+}
+
+.sb-quick-btn.gold:hover {
+    background: #ffc400;
+}
+
+/* Faixa Explicativa Passo a Passo (Como Funciona) */
+.how-it-works-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--card-item-bg);
+    border: 1px solid var(--card-item-border);
+    border-left: 4px solid var(--brand-gold);
+    border-radius: 6px;
+    padding: 10px 14px;
+    gap: 10px;
+    box-shadow: var(--shadow-card);
+}
+
+.hiw-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.hiw-num {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand-purple);
+    border: 1px solid var(--brand-gold);
+    color: var(--brand-gold);
+    font-size: 12px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.hiw-step div {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+}
+
+.hiw-step strong {
+    font-size: 12px;
+    color: var(--text-main);
+    font-weight: 800;
+}
+
+.hiw-step span {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.hiw-divider {
+    color: var(--text-muted);
+    font-size: 12px;
+    opacity: 0.5;
+}
+
+/* Barra do Apostador no Topo do Cupom */
+.betslip-client-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 7px 10px;
+    background: var(--bg-panel-alt);
+    border-bottom: 1px solid var(--card-item-border);
+}
+
+.betslip-client-select {
+    background: var(--bg-dark);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 11.5px;
+    font-weight: 700;
+    width: 100%;
+    outline: none;
+    cursor: pointer;
+}
+
+.betslip-new-user-btn {
+    background: var(--brand-gold-btn);
+    color: #1b1433;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 8px;
+    font-size: 11px;
+    font-weight: 900;
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.betslip-new-user-btn:hover {
+    background: #ffc400;
+}
+
+/* Modal de Cadastro / Minha Conta */
+.account-modal-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    background: var(--bg-dark);
+    padding: 5px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 16px;
+}
+
+.account-tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 9px 8px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+}
+
+.account-tab-btn:hover {
+    color: var(--text-main);
+}
+
+.account-tab-btn.active {
+    background: var(--brand-purple);
+    color: #FFFFFF;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.register-info-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: rgba(59, 42, 111, 0.25);
+    border: 1px solid rgba(255, 196, 0, 0.4);
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--text-secondary);
+}
+
+.register-info-banner strong {
+    color: var(--text-main);
+    display: block;
+    margin-bottom: 2px;
+}
+
+.form-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.form-group label {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+/* Estilos do Painel Admin Aprimorado */
+.admin-kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.admin-kpi-card {
+    background: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.admin-kpi-card span {
+    font-size: 10.5px;
+    color: var(--text-muted);
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.admin-kpi-card strong {
+    font-size: 17px;
+    font-weight: 900;
+    color: var(--brand-gold);
+}
+
+.admin-section-box {
+    background: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.admin-section-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: var(--text-main);
+    font-weight: 800;
+    margin-bottom: 8px;
+    letter-spacing: 0.3px;
+}
+
+@media (max-width: 1200px) {
+    .main-container { grid-template-columns: 1fr 295px; }
+    .sidebar { display: none; }
+    .mc-arena-grid { grid-template-columns: 1fr; }
+    .hero-banners { grid-template-columns: 1fr; }
+    .how-it-works-strip { flex-direction: column; align-items: flex-start; }
+    .hiw-divider { display: none; }
+    .form-grid-2 { grid-template-columns: 1fr; }
+}
+

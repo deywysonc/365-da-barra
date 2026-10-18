@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>365 DA BARRA - Apostas Esportivas Online</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@600;700&family=Roboto:wght@400;500;700;900&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <!-- CABEÇALHO SUPERIOR OFICIAL 365 DA BARRA (#3b2a6f) -->
+    <header class="header">
+        <div class="header-left">
+            <div class="title" onclick="switchMainSection('matches'); filterMatches('all')" style="cursor:pointer;">
+                <img src="logo-365dabarra.png" alt="365 DA BARRA" class="header-mini-logo">
+                <div>
+                    <span class="brand-title-text">365 DA BARRA</span>
+                    <span class="header-live-pill" id="live-games-counter">⚡ Tempo Real</span>
+                </div>
+            </div>
+            <nav class="top-nav">
+                <a class="active" data-top-nav="matches-all" onclick="switchMainSection('matches'); filterMatches('all')"><i class="far fa-futbol"></i> Jogos do Dia</a>
+                <a data-top-nav="matches-live" onclick="switchMainSection('matches'); filterMatches('live')"><span class="live-dot"></span> Ao Vivo</a>
+                <a data-top-nav="news" onclick="switchMainSection('news')"><i class="far fa-newspaper"></i> Notícias & Vídeos</a>
+                <a data-top-nav="rules" onclick="switchMainSection('rules')"><i class="fas fa-ticket-alt"></i> Conferir PIN & Regras</a>
+            </nav>
+        </div>
+
+        <!-- Área do Apostador, Cadastro, Carteira Admin e Painel Admin -->
+        <div class="user-actions">
+            <button class="theme-toggle-btn" id="theme-toggle-btn" onclick="toggleSiteTheme()" title="Alternar entre Tema Escuro e Tema Claro">
+                <i class="fas fa-sun" id="theme-toggle-icon"></i> <span id="theme-toggle-label">Tema Claro</span>
+            </button>
+
+            <!-- Pílula Interativa do Usuário Logado (Abre Minha Conta / Trocar Cliente) -->
+            <div class="user-profile-pill" onclick="openUserAccountModal('profile')" title="Ver Minha Conta ou Trocar de Apostador">
+                <div class="user-avatar-circle" id="header-user-avatar">DM</div>
+                <div class="user-profile-info">
+                    <span class="user-profile-label">Apostador Logado <i class="fas fa-caret-down"></i></span>
+                    <span class="user-profile-name" id="header-user-name">Deywyson Machado</span>
+                </div>
+            </div>
+
+            <!-- Botão Direto para Cadastrar Novo Usuário -->
+            <button class="btn-register-top" onclick="openUserAccountModal('register')" title="Cadastrar Novo Apostador na 365 DA BARRA">
+                <i class="fas fa-user-plus"></i> Cadastrar
+            </button>
+
+            <!-- Carteira com Saldo Liberado pelo Admin + Botão Pedir Saldo -->
+            <div class="wallet-box">
+                <div class="wallet-texts" onclick="openRequestBalanceModal()" style="cursor:pointer;" title="Clique para solicitar liberação de saldo ao Admin">
+                    <span class="wallet-label">Saldo Liberado (Admin)</span>
+                    <span class="wallet-balance" id="user-balance">R$ 450,00</span>
+                </div>
+                <button class="wallet-add-btn" onclick="openRequestBalanceModal()" title="Solicitar Liberação de Saldo ao Admin">
+                    <i class="fas fa-plus"></i> Pedir Saldo
+                </button>
+            </div>
+
+            <!-- Botão Painel do Admin / Cambista -->
+            <button class="btn-deposit" onclick="openAdminModal()">
+                <i class="fas fa-user-shield"></i> Admin <span class="admin-badge-pill" id="admin-alert-count">0</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- ESTRUTURA PRINCIPAL 3 COLUNAS (PADRÃO 365 DA BARRA APRIMORADO) -->
+    <div class="main-container">
+
+        <!-- COLUNA ESQUERDA: SIDEBAR OFICIAL COM ESCUDO 365 DA BARRA E ACORDEÕES -->
+        <aside class="sidebar">
+            <!-- Escudo Oficial 365 DA BARRA -->
+            <div id="divImageLogo" class="sidebar-logo-box" onclick="switchMainSection('matches'); filterMatches('all')">
+                <img id="imgLogo" src="logo-365dabarra.png" alt="365 DA BARRA">
+            </div>
+
+            <!-- Atalho Rápido de Conta / Cadastro na Sidebar -->
+            <div class="sidebar-user-quickbar">
+                <button class="sb-quick-btn" onclick="openUserAccountModal('profile')">
+                    <i class="fas fa-user-circle"></i> Minha Conta
+                </button>
+                <button class="sb-quick-btn gold" onclick="openUserAccountModal('register')">
+                    <i class="fas fa-user-plus"></i> Criar Conta
+                </button>
+            </div>
+
+            <div class="menu">
+                <!-- Início -->
+                <a class="menuSingle active" data-sb-nav="all" onclick="switchMainSection('matches'); filterMatches('all')">
+                    <div class="boxIcon"><i class="fas fa-home"></i></div>
+                    <span class="title">Todos os Jogos</span>
+                    <span class="badge-count" id="sb-count-all">0</span>
+                </a>
+
+                <!-- Ao Vivo -->
+                <a class="menuSingle" data-sb-nav="live" onclick="switchMainSection('matches'); filterMatches('live')">
+                    <div class="boxIcon"><i class="fas fa-broadcast-tower" style="color:#ff4757;"></i></div>
+                    <span class="title">Ao Vivo Agora</span>
+                    <span class="badge-count live" id="sb-count-live">0</span>
+                </a>
+
+                <!-- Futebol (Acordeão Principal) -->
+                <div class="menuMulti">
+                    <div class="menuMulti-main selected" id="sb-futebol-main" onclick="toggleSidebarAccordion('sb-futebol-items', this)">
+                        <div class="boxIcon"><i class="far fa-futbol"></i></div>
+                        <span class="title">Campeonatos</span>
+                        <i class="fas fa-chevron-down menu-arrow"></i>
+                    </div>
+
+                    <div id="sb-futebol-items" class="menuMulti-items" style="display:block;">
+                        <!-- Sub-acordeão: Brasil -->
+                        <div class="subMenuMulti">
+                            <div class="subMenuMulti-title" onclick="toggleSidebarSubAccordion('sub-brasil')">
+                                <span>🇧🇷 Futebol Brasileiro</span>
+                                <i class="fas fa-angle-down"></i>
+                            </div>
+                            <div id="sub-brasil" class="subMenuMulti-items" style="display:block;">
+                                <a class="item" data-sb-nav="bra.1" onclick="filterMatches('bra.1')">
+                                    <span class="name">Brasileirão Série A</span>
+                                    <span class="badge-count" id="sb-count-bra.1">0</span>
+                                </a>
+                                <a class="item" data-sb-nav="bra.2" onclick="filterMatches('bra.2')">
+                                    <span class="name">Brasileirão Série B</span>
+                                    <span class="badge-count" id="sb-count-bra.2">0</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Sub-acordeão: Clubes Internacionais -->
+                        <div class="subMenuMulti">
+                            <div class="subMenuMulti-title" onclick="toggleSidebarSubAccordion('sub-intl')">
+                                <span>🏆 Copas Continentais</span>
+                                <i class="fas fa-angle-down"></i>
+                            </div>
+                            <div id="sub-intl" class="subMenuMulti-items" style="display:block;">
+                                <a class="item" data-sb-nav="conmebol.libertadores" onclick="filterMatches('conmebol.libertadores')">
+                                    <span class="name">CONMEBOL Libertadores</span>
+                                    <span class="badge-count" id="sb-count-conmebol.libertadores">0</span>
+                                </a>
+                                <a class="item" data-sb-nav="uefa.champions" onclick="filterMatches('uefa.champions')">
+                                    <span class="name">UEFA Champions League</span>
+                                    <span class="badge-count" id="sb-count-uefa.champions">0</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Sub-acordeão: Principais Ligas Europeias & Sul-Americanas -->
+                        <div class="subMenuMulti">
+                            <div class="subMenuMulti-title" onclick="toggleSidebarSubAccordion('sub-europa')">
+                                <span>🌍 Ligas Internacionais</span>
+                                <i class="fas fa-angle-down"></i>
+                            </div>
+                            <div id="sub-europa" class="subMenuMulti-items" style="display:block;">
+                                <a class="item" data-sb-nav="eng.1" onclick="filterMatches('eng.1')">
+                                    <span class="name">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra • Premier</span>
+                                    <span class="badge-count" id="sb-count-eng.1">0</span>
+                                </a>
+                                <a class="item" data-sb-nav="esp.1" onclick="filterMatches('esp.1')">
+                                    <span class="name">🇪🇸 Espanha • La Liga</span>
+                                    <span class="badge-count" id="sb-count-esp.1">0</span>
+                                </a>
+                                <a class="item" data-sb-nav="ita.1" onclick="filterMatches('ita.1')">
+                                    <span class="name">🇮🇹 Itália • Série A</span>
+                                    <span class="badge-count" id="sb-count-ita.1">0</span>
+                                </a>
+                                <a class="item" data-sb-nav="ger.1" onclick="filterMatches('ger.1')">
+                                    <span class="name">🇩🇪 Alemanha • Bundesliga</span>
+                                    <span class="badge-count" id="sb-count-ger.1">0</span>
+                                </a>
+                                <a class="item" data-sb-nav="fra.1" onclick="filterMatches('fra.1')">
+                                    <span class="name">🇫🇷 França • Ligue 1</span>
+                                    <span class="badge-count" id="sb-count-fra.1">0</span>
+                                </a>
+                                <a class="item" data-sb-nav="por.1" onclick="filterMatches('por.1')">
+                                    <span class="name">🇵🇹 Portugal • Liga</span>
+                                    <span class="badge-count" id="sb-count-por.1">0</span>
+                                </a>
+                                <a class="item" data-sb-nav="arg.1" onclick="filterMatches('arg.1')">
+                                    <span class="name">🇦🇷 Argentina • Primera</span>
+                                    <span class="badge-count" id="sb-count-arg.1">0</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notícias & Vídeos (Diferencial Superior) -->
+                <a class="menuSingle" data-sb-nav="news" onclick="switchMainSection('news')">
+                    <div class="boxIcon"><i class="far fa-newspaper"></i></div>
+                    <span class="title">Notícias & Vídeos</span>
+                </a>
+
+                <!-- Conferir Bilhete / Regulamento -->
+                <a class="menuSingle" data-sb-nav="rules" onclick="switchMainSection('rules'); setTimeout(()=>{const el=document.getElementById('check-pin-input'); if(el) el.focus();}, 120);">
+                    <div class="boxIcon"><i class="fas fa-ticket-alt"></i></div>
+                    <span class="title">Conferir Bilhete (PIN)</span>
+                </a>
+            </div>
+
+            <!-- Botão Admin e Caixa de Informação Oficial 365 DA BARRA -->
+            <button class="btnSidebarAction" onclick="openAdminModal()">
+                <i class="fas fa-user-shield"></i> Painel Cambista / Admin
+            </button>
+
+            <div class="menuBoxInfo">
+                <span><strong>365 DA BARRA • OFICIAL</strong></span>
+                <p>Prêmio Máx: <strong>R$ 30.000,00</strong><br>Regra: 1 Opção por Partida<br>Saldo liberado pelo Admin</p>
+            </div>
+        </aside>
+
+        <!-- COLUNA CENTRAL: CONTAINER DE APOSTAS E EVENTOS -->
+        <main class="content containerBets">
+
+            <!-- VISÃO 1: LISTA DE PARTIDAS (PADRÃO 365 DA BARRA + USABILIDADE APRIMORADA) -->
+            <div id="home-matches-view" style="display:flex; flex-direction:column; gap:12px;">
+
+                <!-- Guia Rápido Visual: Como Funciona (Fácil entendimento para qualquer cliente) -->
+                <div class="how-it-works-strip">
+                    <div class="hiw-step">
+                        <span class="hiw-num">1</span>
+                        <div>
+                            <strong>Escolha seus Palpites</strong>
+                            <span>Clique na cotação (Casa, Empate ou Fora) ou abra os <strong>+280 mercados</strong></span>
+                        </div>
+                    </div>
+                    <div class="hiw-divider"><i class="fas fa-chevron-right"></i></div>
+                    <div class="hiw-step">
+                        <span class="hiw-num">2</span>
+                        <div>
+                            <strong>Confira no Cupom ao Lado</strong>
+                            <span>1 opção por partida • Digite o valor da sua aposta (mín. R$ 2,00)</span>
+                        </div>
+                    </div>
+                    <div class="hiw-divider"><i class="fas fa-chevron-right"></i></div>
+                    <div class="hiw-step">
+                        <span class="hiw-num">3</span>
+                        <div>
+                            <strong>Saldo Admin ou Código PIN</strong>
+                            <span>Aposte com seu <strong>Saldo Liberado pelo Admin</strong> ou gere um <strong>Pré-Bilhete PIN</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Banners Superiores Interativos -->
+                <div class="hero-banners">
+                    <div class="hero-card" id="hero-featured-card">
+                        <div>
+                            <span class="hero-tag" id="hero-featured-tag">🔴 DADOS REAIS EM TEMPO REAL</span>
+                            <h2 id="hero-featured-title">Carregando Partidas Oficiais do Dia...</h2>
+                            <p id="hero-featured-desc">Placares ao vivo, escalações confirmadas, estatísticas, árbitro, estádio e cotações atualizados automaticamente.</p>
+                        </div>
+                        <button class="hero-cta" id="hero-featured-btn" onclick="openFeaturedMatch()">🏟️ Abrir Campo 3D & Mercados</button>
+                    </div>
+                    <div class="hero-card alt">
+                        <div>
+                            <span class="hero-tag" style="background:var(--betslip-pin-bg); color:#ffffff;">📰 PORTAL DE NOTÍCIAS & VÍDEOS HD</span>
+                            <h2 id="hero-news-headline">Últimas do Futebol & Melhores Momentos</h2>
+                            <p id="hero-news-sub">Matérias completas em português, vídeos de gols em HD, bastidores dos clubes e cobertura das principais ligas.</p>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <button class="hero-cta" style="background:var(--betslip-pin-bg); color:#ffffff;" onclick="switchMainSection('news')">📰 Abrir Central de Notícias & Vídeos</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Barra de Data / Esporte e Busca Oficial (.dateEventAndSearch da 365 DA BARRA) -->
+                <div class="dateEventAndSearch">
+                    <div class="dateEvent">
+                        <div class="boxIcon"><i class="far fa-futbol"></i></div>
+                        <span class="sportName" id="sport-day-header">Jogos Disponíveis • Tempo Real</span>
+                        <div class="status-subfilters" id="status-subfilters">
+                            <button class="status-subfilter-btn active" data-status-filter="all" onclick="setMatchStatusSubfilter('all', this)">Todos os Jogos</button>
+                            <button class="status-subfilter-btn" data-status-filter="in" onclick="setMatchStatusSubfilter('in', this)">🔴 Ao Vivo</button>
+                            <button class="status-subfilter-btn" data-status-filter="pre" onclick="setMatchStatusSubfilter('pre', this)">⏳ Pré-Jogo</button>
+                            <button class="status-subfilter-btn" data-status-filter="post" onclick="setMatchStatusSubfilter('post', this)">✅ Encerrados</button>
+                        </div>
+                    </div>
+                    <div class="search">
+                        <input type="text" id="global-search-input" placeholder="Buscar time ou campeonato..." oninput="handleSearchMatches(this.value)">
+                        <button type="button" onclick="handleSearchMatches(document.getElementById('global-search-input').value)">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Pílulas Rápidas de Campeonatos -->
+                <div class="filter-bar">
+                    <div class="filter-pills">
+                        <button class="filter-pill active" data-pill-filter="all" onclick="filterMatches('all', this)">🌍 Todas as Ligas</button>
+                        <button class="filter-pill" data-pill-filter="live" onclick="filterMatches('live', this)">🔴 Ao Vivo</button>
+                        <button class="filter-pill" data-pill-filter="bra.1" onclick="filterMatches('bra.1', this)">🇧🇷 Brasileirão A</button>
+                        <button class="filter-pill" data-pill-filter="bra.2" onclick="filterMatches('bra.2', this)">🇧🇷 Brasileirão B</button>
+                        <button class="filter-pill" data-pill-filter="conmebol.libertadores" onclick="filterMatches('conmebol.libertadores', this)">🏆 Libertadores</button>
+                        <button class="filter-pill" data-pill-filter="uefa.champions" onclick="filterMatches('uefa.champions', this)">🇪🇺 Champions</button>
+                        <button class="filter-pill" data-pill-filter="eng.1" onclick="filterMatches('eng.1', this)">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</button>
+                        <button class="filter-pill" data-pill-filter="esp.1" onclick="filterMatches('esp.1', this)">🇪🇸 La Liga</button>
+                        <button class="filter-pill" data-pill-filter="ita.1" onclick="filterMatches('ita.1', this)">🇮🇹 Série A Itália</button>
+                        <button class="filter-pill" data-pill-filter="ger.1" onclick="filterMatches('ger.1', this)">🇩🇪 Bundesliga</button>
+                    </div>
+                </div>
+
+                <!-- Lista de Eventos por País/Campeonato (.eventlistContainer) -->
+                <div id="matches-container" class="eventlistContainer"></div>
+            </div>
+
+            <!-- VISÃO 2: PÁGINA DA PARTIDA AO VIVO (CAMPO 3D + INFORMATIVO + MERCADOS) -->
+            <div id="match-center-view" class="match-center-view">
+                <div class="mc-topbar">
+                    <button class="back-to-list-btn" onclick="backToMatchList()"><i class="fas fa-arrow-left"></i> Voltar para a Grade de Jogos</button>
+                    <div id="mc-breadcrumb" style="font-size:12.5px; color:var(--text-muted); font-weight:700;">
+                        Carregando partida real...
+                    </div>
+                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                        <button class="tracker-ctrl-btn active" id="btn-toggle-3d" onclick="togglePerspectiveView()">🏟️ Estádio 3D</button>
+                        <button class="tracker-ctrl-btn" id="btn-toggle-players" onclick="togglePlayersView()">👕 22 Jogadores</button>
+                        <button class="tracker-ctrl-btn active" id="btn-toggle-trail" onclick="toggleTrailView()">⚡ Trajetória</button>
+                        <button class="tracker-ctrl-btn" id="btn-toggle-heatmap" onclick="toggleHeatmapView()">🔥 Mapa de Calor</button>
+                        <button class="tracker-ctrl-btn" id="btn-toggle-sound" onclick="toggleSoundEffects()">🔇 Som</button>
+                    </div>
+                </div>
+
+                <!-- ARENA DE TRANSMISSÃO AO VIVO -->
+                <div class="mc-live-arena">
+                    <div class="mc-scoreboard-banner">
+                        <div class="mc-team-block home">
+                            <div class="mc-team-text-home">
+                                <div class="mc-team-title" id="sb-home-name">Time Casa</div>
+                                <div class="mc-team-meta" id="sb-home-formation">Mandante</div>
+                            </div>
+                            <img id="sb-home-logo" src="https://a.espncdn.com/i/teamlogos/soccer/500/819.png" alt="" class="mc-team-logo">
+                        </div>
+
+                        <div class="mc-score-center">
+                            <div class="mc-live-pill"><span class="live-dot"></span> <span id="sb-clock">Sincronizando...</span></div>
+                            <div class="mc-score-pill" id="sb-score">0 - 0</div>
+                            <div id="sb-stadium" class="mc-stadium-sub">🏟️ Estádio Oficial</div>
+                            <div id="sb-events-strip" style="font-size:11px; color:var(--accent-yellow); font-weight:700; margin-top:2px; text-align:center;"></div>
+                        </div>
+
+                        <div class="mc-team-block away">
+                            <img id="sb-away-logo" src="https://a.espncdn.com/i/teamlogos/soccer/500/2029.png" alt="" class="mc-team-logo">
+                            <div class="mc-team-text-away">
+                                <div class="mc-team-title" id="sb-away-name">Time Visitante</div>
+                                <div class="mc-team-meta" id="sb-away-formation">Visitante</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mc-arena-grid">
+                        <!-- Coluna do Campo 3D Vetorial HD -->
+                        <div class="mc-pitch-column">
+                            <div class="stadium-stage" id="stadium-stage">
+                                <div class="pitch-broadcast-hud" id="pitch-hud-box">
+                                    <div class="hud-status-badge" id="hud-zone-badge">🔥 ATAQUE PERIGOSO</div>
+                                    <div class="hud-texts">
+                                        <div class="hud-main-title" id="hud-action-title">PARTIDA EM TEMPO REAL</div>
+                                        <div class="hud-sub-desc" id="hud-action-sub">Sincronizando lances oficiais da partida...</div>
+                                    </div>
+                                </div>
+
+                                <div class="stadium-led-board">
+                                    <span>🏆 365 DA BARRA</span>
+                                    <span>⚡ TRANSMISSÃO EM TEMPO REAL</span>
+                                    <span>💰 PRÊMIO MÁXIMO R$ 30.000,00</span>
+                                    <span>🔥 COTAÇÕES OFICIAIS</span>
+                                </div>
+
+                                <div class="pitch-3d-wrap perspective-3d" id="pitch-3d-wrap">
+                                    <svg id="pitch-svg" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet">
+                                        <defs>
+                                            <linearGradient id="gradZoneHome" x1="0%" y1="0%" x2="100%" y2="0%">
+                                                <stop offset="0%" stop-color="#00e676" stop-opacity="0.02"/>
+                                                <stop offset="55%" stop-color="#00e676" stop-opacity="0.18"/>
+                                                <stop offset="100%" stop-color="#00e676" stop-opacity="0.45"/>
+                                            </linearGradient>
+                                            <linearGradient id="gradDangerHome" x1="0%" y1="0%" x2="100%" y2="0%">
+                                                <stop offset="0%" stop-color="#ff3d57" stop-opacity="0.02"/>
+                                                <stop offset="50%" stop-color="#ff6b00" stop-opacity="0.22"/>
+                                                <stop offset="100%" stop-color="#ff1744" stop-opacity="0.52"/>
+                                            </linearGradient>
+                                            <linearGradient id="gradZoneAway" x1="100%" y1="0%" x2="0%" y2="0%">
+                                                <stop offset="0%" stop-color="#29b6f6" stop-opacity="0.02"/>
+                                                <stop offset="55%" stop-color="#29b6f6" stop-opacity="0.18"/>
+                                                <stop offset="100%" stop-color="#29b6f6" stop-opacity="0.45"/>
+                                            </linearGradient>
+                                            <linearGradient id="gradDangerAway" x1="100%" y1="0%" x2="0%" y2="0%">
+                                                <stop offset="0%" stop-color="#ff3d57" stop-opacity="0.02"/>
+                                                <stop offset="50%" stop-color="#ff6b00" stop-opacity="0.22"/>
+                                                <stop offset="100%" stop-color="#ff1744" stop-opacity="0.52"/>
+                                            </linearGradient>
+                                            <radialGradient id="heatSpot" cx="50%" cy="50%" r="50%">
+                                                <stop offset="0%" stop-color="#ff1744" stop-opacity="0.55"/>
+                                                <stop offset="50%" stop-color="#ffd600" stop-opacity="0.28"/>
+                                                <stop offset="100%" stop-color="#00e676" stop-opacity="0"/>
+                                            </radialGradient>
+                                            <filter id="glowEffect" x="-20%" y="-20%" width="140%" height="140%">
+                                                <feGaussianBlur stdDeviation="4" result="blur"/>
+                                                <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                                            </filter>
+                                        </defs>
+
+                                        <rect x="0" y="0" width="800" height="450" rx="10" fill="#113320"/>
+
+                                        <g id="svg-turf-stripes">
+                                            <rect x="30" y="25" width="46.25" height="400" fill="#17492d"/>
+                                            <rect x="76.25" y="25" width="46.25" height="400" fill="#1b5434"/>
+                                            <rect x="122.5" y="25" width="46.25" height="400" fill="#17492d"/>
+                                            <rect x="168.75" y="25" width="46.25" height="400" fill="#1b5434"/>
+                                            <rect x="215" y="25" width="46.25" height="400" fill="#17492d"/>
+                                            <rect x="261.25" y="25" width="46.25" height="400" fill="#1b5434"/>
+                                            <rect x="307.5" y="25" width="46.25" height="400" fill="#17492d"/>
+                                            <rect x="353.75" y="25" width="46.25" height="400" fill="#1b5434"/>
+                                            <rect x="400" y="25" width="46.25" height="400" fill="#17492d"/>
+                                            <rect x="446.25" y="25" width="46.25" height="400" fill="#1b5434"/>
+                                            <rect x="492.5" y="25" width="46.25" height="400" fill="#17492d"/>
+                                            <rect x="538.75" y="25" width="46.25" height="400" fill="#1b5434"/>
+                                            <rect x="585" y="25" width="46.25" height="400" fill="#17492d"/>
+                                            <rect x="631.25" y="25" width="46.25" height="400" fill="#1b5434"/>
+                                            <rect x="677.5" y="25" width="46.25" height="400" fill="#17492d"/>
+                                            <rect x="723.75" y="25" width="46.25" height="400" fill="#1b5434"/>
+                                        </g>
+
+                                        <image id="svg-logo-home" href="https://a.espncdn.com/i/teamlogos/soccer/500/819.png" x="165" y="170" width="110" height="110" opacity="0.14"/>
+                                        <image id="svg-logo-away" href="https://a.espncdn.com/i/teamlogos/soccer/500/2029.png" x="525" y="170" width="110" height="110" opacity="0.14"/>
+
+                                        <g id="svg-heatmap-layer" style="display:none;"></g>
+
+                                        <g id="svg-zone-layer">
+                                            <polygon id="svg-zone-poly" points="30,25 580,25 630,225 580,425 30,425" fill="url(#gradDangerHome)"/>
+                                            <polyline id="svg-zone-edge" points="580,25 630,225 580,425" fill="none" stroke="#ff3d57" stroke-width="3" stroke-dasharray="6,4" opacity="0.85"/>
+                                            <g id="svg-zone-chevrons"></g>
+                                        </g>
+
+                                        <g stroke="rgba(255,255,255,0.65)" stroke-width="2.2" fill="none">
+                                            <rect x="30" y="25" width="740" height="400"/>
+                                            <line x1="400" y1="25" x2="400" y2="425"/>
+                                            <circle cx="400" cy="225" r="56"/>
+                                            <circle cx="400" cy="225" r="4" fill="#fff"/>
+                                            <rect x="30" y="105" width="115" height="240"/>
+                                            <rect x="30" y="165" width="42" height="120"/>
+                                            <circle cx="110" cy="225" r="3" fill="#fff"/>
+                                            <path d="M 145 180 A 55 55 0 0 1 145 270"/>
+                                            <rect x="655" y="105" width="115" height="240"/>
+                                            <rect x="728" y="165" width="42" height="120"/>
+                                            <circle cx="690" cy="225" r="3" fill="#fff"/>
+                                            <path d="M 655 180 A 55 55 0 0 0 655 270"/>
+                                            <path d="M 30 37 A 12 12 0 0 0 42 25"/>
+                                            <path d="M 42 425 A 12 12 0 0 0 30 413"/>
+                                            <path d="M 758 25 A 12 12 0 0 0 770 37"/>
+                                            <path d="M 770 413 A 12 12 0 0 0 758 425"/>
+                                            <rect x="14" y="192" width="16" height="66" fill="rgba(255,255,255,0.16)" stroke="#ffffff" stroke-width="2.8"/>
+                                            <rect x="770" y="192" width="16" height="66" fill="rgba(255,255,255,0.16)" stroke="#ffffff" stroke-width="2.8"/>
+                                        </g>
+
+                                        <g id="svg-players-layer" style="display:none;"></g>
+
+                                        <g id="svg-trail-layer">
+                                            <path id="svg-ground-shadow" d="" fill="none" stroke="rgba(0,0,0,0.45)" stroke-width="3" stroke-dasharray="5,5"/>
+                                            <path id="svg-ball-path" d="" fill="none" stroke="#ffd600" stroke-width="3.2" stroke-linecap="round" filter="url(#glowEffect)"/>
+                                            <g id="svg-pass-nodes"></g>
+                                        </g>
+
+                                        <g id="svg-ball-group" transform="translate(400, 225)">
+                                            <circle id="svg-ball-Ping1" cx="0" cy="0" r="18" fill="none" stroke="#ff3d57" stroke-width="2.5" opacity="0.7"/>
+                                            <circle id="svg-ball-Ping2" cx="0" cy="0" r="30" fill="none" stroke="#ff3d57" stroke-width="1.5" opacity="0.35"/>
+                                            <ellipse id="svg-ball-shadow" cx="3" cy="5" rx="8" ry="5" fill="rgba(0,0,0,0.6)"/>
+                                            <circle id="svg-ball-core" cx="0" cy="0" r="8.5" fill="#ffffff" stroke="#0f172a" stroke-width="2"/>
+                                            <polygon points="0,-4 3.8,-1.2 2.4,3.2 -2.4,3.2 -3.8,-1.2" fill="#0f172a"/>
+                                        </g>
+                                    </svg>
+
+                                    <div class="ball-Floating-tag" id="ball-floating-tag">
+                                        <span class="ball-tag-dot" id="ball-tag-dot"></span>
+                                        <span id="ball-tag-player">Em Jogo</span>
+                                    </div>
+
+                                    <div class="goal-celebration-banner" id="goal-celebration-banner">
+                                        <div class="goal-big-title">⚽ GOOOOOOL!</div>
+                                        <div class="goal-sub-score" id="goal-banner-score">Gol Oficial!</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Informativo da Partida ao Lado do Campo -->
+                        <div class="mc-info-column">
+                            <div class="tracker-tabs">
+                                <div class="tracker-tab active" onclick="switchTrackerTab('stats', this)">📊 Estatísticas</div>
+                                <div class="tracker-tab" onclick="switchTrackerTab('feed', this)">⚡ Lances (<span id="feed-count">0</span>)</div>
+                                <div class="tracker-tab" onclick="switchTrackerTab('lineups', this)">👕 Escalações</div>
+                                <div class="tracker-tab" onclick="switchTrackerTab('standings', this)">🏆 Tabela & H2H</div>
+                            </div>
+                            <div class="tracker-tab-content" id="tracker-tab-body"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mercados Completos da Partida (Estilo .eventdetail-market da 365 DA BARRA) -->
+                <div class="mc-markets-section" id="mc-all-markets"></div>
+            </div>
+
+            <!-- VISÃO 3: PORTAL DE NOTÍCIAS E VÍDEOS DO FUTEBOL EM TEMPO REAL -->
+            <div id="news-view" style="display:none; flex-direction:column; gap:16px;">
+                <div class="mc-topbar">
+                    <button class="back-to-list-btn" onclick="switchMainSection('matches')"><i class="fas fa-arrow-left"></i> Voltar para os Jogos</button>
+                    <h2 style="font-size:16px; font-weight:900;">📰 Central de Notícias, Bastidores & Vídeos em Tempo Real</h2>
+                    <span style="font-size:11.5px; color:var(--accent-green); font-weight:800;">🟢 Atualização Automática</span>
+                </div>
+
+                <div class="filter-bar">
+                    <div class="filter-pills" id="news-filter-pills">
+                        <button class="filter-pill active" onclick="filterNewsByLeague('all', this)">🔥 Todas as Editorias</button>
+                        <button class="filter-pill" onclick="filterNewsByLeague('bra.1', this)">🇧🇷 Brasileirão</button>
+                        <button class="filter-pill" onclick="filterNewsByLeague('conmebol.libertadores', this)">🏆 Libertadores</button>
+                        <button class="filter-pill" onclick="filterNewsByLeague('eng.1', this)">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</button>
+                        <button class="filter-pill" onclick="filterNewsByLeague('esp.1', this)">🇪🇸 La Liga</button>
+                        <button class="filter-pill" onclick="filterNewsByLeague('uefa.champions', this)">🇪🇺 Champions League</button>
+                    </div>
+                    <span style="font-size:11.5px; color:var(--text-muted); font-weight:700;">🎬 Clique em qualquer matéria para ler na íntegra e assistir aos vídeos</span>
+                </div>
+
+                <div id="news-featured-hero"></div>
+                <div id="news-grid-container" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:16px;"></div>
+            </div>
+
+            <!-- VISÃO 4: REGULAMENTO E CONFERÊNCIA DE BILHETE POR PIN -->
+            <div id="rules-view" style="display:none; flex-direction:column; gap:16px;">
+                <div class="mc-topbar">
+                    <button class="back-to-list-btn" onclick="switchMainSection('matches')"><i class="fas fa-arrow-left"></i> Voltar para os Jogos</button>
+                    <h2 style="font-size:16px; font-weight:900;">📋 Regulamento Oficial 365 DA BARRA & Conferir Bilhete (PIN)</h2>
+                    <span></span>
+                </div>
+
+                <!-- Consulta de Bilhete por PIN -->
+                <div class="mc-market-card">
+                    <div class="mc-market-header">
+                        <span>🔍 Conferir Bilhete pelo Código PIN</span>
+                        <span>365 DA BARRA</span>
+                    </div>
+                    <div style="padding:16px;">
+                        <div style="display:flex; gap:8px; margin-bottom:10px;">
+                            <input type="text" id="check-pin-input" class="stake-input" placeholder="Digite o código PIN do bilhete (ex: 482-910)">
+                            <button class="btn-deposit" onclick="checkPinTicket()"><i class="fas fa-search"></i> Consultar Bilhete</button>
+                        </div>
+                        <div id="check-pin-result"></div>
+                    </div>
+                </div>
+
+                <!-- Regras Oficiais das Casas de Apostas -->
+                <div class="mc-market-card">
+                    <div class="mc-market-header">
+                        <span>⚖️ Regulamento Geral de Apostas • 365 DA BARRA</span>
+                        <span>Regras Oficiais</span>
+                    </div>
+                    <div style="padding:16px; line-height:1.65; font-size:13px; color:var(--text-secondary);">
+                        <p style="margin-bottom:8px;">1. <strong>Seleção Única por Partida (Bloqueio de Correlação):</strong> Não é permitido combinar duas ou mais opções da mesma partida em um mesmo bilhete simples/múltiplo. Caso selecione outra cotação do mesmo jogo, o sistema substituirá automaticamente a seleção anterior daquela partida.</p>
+                        <p style="margin-bottom:8px;">2. <strong>Tempo Regulamentar (90 Minutos):</strong> Todas as apostas de futebol consideram apenas o tempo regulamentar de 90 minutos mais os acréscimos definidos pelo árbitro. Prorrogação e disputa de pênaltis não são consideradas, salvo indicação explícita no mercado.</p>
+                        <p style="margin-bottom:8px;">3. <strong>Cadastro de Usuário e Liberação de Créditos pelo Admin:</strong> O apostador pode criar sua conta gratuitamente, porém <strong>não realiza depósitos automáticos</strong> na plataforma. Todo saldo de jogo é liberado exclusivamente pelo Administrador/Gerente da banca, ou o cliente pode emitir um <strong>Pré-Bilhete com Código PIN</strong> para validação junto ao cambista.</p>
+                        <p style="margin-bottom:8px;">4. <strong>Limites da Banca:</strong> Valor mínimo por aposta: <strong>R$ 2,00</strong> • Valor máximo por aposta: <strong>R$ 5.000,00</strong> • Prêmio/Retorno máximo por bilhete: <strong>R$ 30.000,00</strong> • Máximo de 20 jogos por bilhete múltiplo.</p>
+                        <p>5. <strong>Partidas Adiadas ou Canceladas:</strong> Caso uma partida seja adiada ou interrompida e não seja retomada em até 48 horas, a cotação daquele evento específico no bilhete múltiplo será recalculada como <strong>1,00</strong> (anulada), mantendo-se válidas as demais seleções do bilhete.</p>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="site-footer">
+                <div>
+                    <strong style="color:var(--text-main);">365 DA BARRA • Plataforma Oficial de Apostas Esportivas</strong><br>
+                    Créditos gerenciados pelo Admin • Dados, Escalações e Estatísticas em Tempo Real • +18
+                </div>
+                <div style="text-align:right;">
+                    Regra: 1 Opção por Jogo • Prêmio Máx: R$ 30.000,00
+                </div>
+            </footer>
+        </main>
+
+        <!-- COLUNA DIREITA: CUPOM DE APOSTAS OFICIAL 365 DA BARRA -->
+        <aside class="right-panel">
+            <div class="betslip">
+                <div class="betslip-header">
+                    <div class="betslip-tabs">
+                        <div class="betslip-tab active" id="tab-slip-btn" onclick="switchBetslipView('slip')">
+                            <i class="fas fa-receipt"></i> Cupom <span class="betslip-count" id="betslip-count">0</span>
+                        </div>
+                        <div class="betslip-tab" id="tab-history-btn" onclick="switchBetslipView('history')">
+                            <i class="fas fa-ticket-alt"></i> Bilhetes / PIN <span class="betslip-count" id="history-count">0</span>
+                        </div>
+                    </div>
+                    <button class="clear-slip-btn" onclick="clearBetslip()" title="Limpar todas as seleções do cupom"><i class="fas fa-trash-alt"></i></button>
+                </div>
+
+                <!-- Barra do Apostador no Cupom (Mostra quem está apostando e permite trocar ou cadastrar) -->
+                <div class="betslip-client-bar">
+                    <div style="display:flex; align-items:center; gap:6px; min-width:0; flex:1;">
+                        <i class="fas fa-user-check" style="color:var(--brand-gold); font-size:12px;"></i>
+                        <select id="client-selector" class="betslip-client-select" onchange="handleClientSelectChange(this.value)" title="Selecionar Apostador">
+                        </select>
+                    </div>
+                    <button class="betslip-new-user-btn" onclick="openUserAccountModal('register')" title="Cadastrar Novo Apostador">
+                        <i class="fas fa-user-plus"></i> Novo
+                    </button>
+                </div>
+
+                <!-- Corpo do Cupom (.betslip-body) -->
+                <div class="betslip-items betslip-body" id="betslip-items"></div>
+
+                <!-- Rodapé do Cupom (.betslip-footer da 365 DA BARRA com usabilidade aprimorada) -->
+                <div class="betslip-footer" id="betslip-footer">
+                    <div class="slip-summary-row" style="margin-bottom:6px; font-size:11.5px; display:flex; justify-content:space-between; color:var(--text-muted);">
+                        <span>Modalidade do Bilhete:</span>
+                        <strong id="bet-type-label" style="color:var(--text-main);">Nenhuma seleção</strong>
+                    </div>
+
+                    <div class="oddAndPossibleReturn">
+                        <div class="odd">
+                            <span>Cotação Total</span>
+                            <span><strong id="total-odd-value">1,00</strong></span>
+                        </div>
+                        <div class="possibleReturn">
+                            <span>Possível Retorno</span>
+                            <span><strong id="potential-return-value">R$ 0,00</strong></span>
+                        </div>
+                    </div>
+
+                    <div class="valueBet">
+                        <div class="legend">Valor da Aposta (R$)</div>
+                        <input type="number" id="bet-amount" class="stake-input" placeholder="R$ 0,00" value="20" min="2" oninput="calculateReturn()">
+                    </div>
+
+                    <div class="quick-stakes">
+                        <button class="quick-stake-btn" onclick="addQuickStake(10)">+R$ 10</button>
+                        <button class="quick-stake-btn" onclick="addQuickStake(25)">+R$ 25</button>
+                        <button class="quick-stake-btn" onclick="addQuickStake(50)">+R$ 50</button>
+                        <button class="quick-stake-btn" onclick="addQuickStake(100)">+R$ 100</button>
+                        <button class="quick-stake-btn" onclick="addQuickStake('MAX')">TUDO</button>
+                    </div>
+
+                    <div class="finishBet" style="display:flex; flex-direction:column; gap:7px;">
+                        <button class="place-bet-btn" onclick="placeBet(false)">
+                            <i class="fas fa-check-circle"></i> Finalizar com Saldo Liberado
+                        </button>
+                        <button class="pin-bet-btn" onclick="placeBet(true)">
+                            <i class="fas fa-qrcode"></i> Gerar Pré-Bilhete (Código PIN)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- =========================================================================
+         MODAL 1: CADASTRO DE USUÁRIO, LOGIN / TROCAR CONTA & MINHA CONTA
+         ========================================================================= -->
+    <div class="modal-overlay" id="user-account-modal">
+        <div class="modal-card" style="width:560px; max-width:95vw; max-height:90vh; overflow-y:auto;">
+            <div class="modal-header">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <img src="logo-365dabarra.png" alt="" style="width:34px; height:34px; object-fit:contain;">
+                    <div>
+                        <h3 style="font-size:16px; color:var(--text-main);">Central do Apostador • 365 DA BARRA</h3>
+                        <span style="font-size:11px; color:var(--text-muted);">Cadastro de Cliente, Carteira Admin e Meus Bilhetes</span>
+                    </div>
+                </div>
+                <button class="modal-close" onclick="closeUserAccountModal()">✕</button>
+            </div>
+
+            <!-- Abas do Modal de Usuário -->
+            <div class="account-modal-tabs">
+                <button class="account-tab-btn active" id="acc-tab-btn-profile" onclick="switchUserAccountTab('profile')">
+                    <i class="fas fa-id-card"></i> Minha Conta
+                </button>
+                <button class="account-tab-btn" id="acc-tab-btn-register" onclick="switchUserAccountTab('register')">
+                    <i class="fas fa-user-plus"></i> Criar Nova Conta
+                </button>
+                <button class="account-tab-btn" id="acc-tab-btn-switch" onclick="switchUserAccountTab('switch')">
+                    <i class="fas fa-exchange-alt"></i> Entrar / Trocar Cliente
+                </button>
+            </div>
+
+            <!-- ABA 1: MINHA CONTA (PERFIL + SALDO ADMIN + CHAVE PIX + BILHETES) -->
+            <div id="acc-tab-profile" class="account-tab-pane">
+                <div id="user-profile-summary-box"></div>
+            </div>
+
+            <!-- ABA 2: CADASTRAR NOVO APOSTADOR NA 365 DA BARRA -->
+            <div id="acc-tab-register" class="account-tab-pane" style="display:none;">
+                <div class="register-info-banner">
+                    <i class="fas fa-shield-alt" style="font-size:18px; color:var(--brand-gold);"></i>
+                    <div>
+                        <strong>Como funciona o Cadastro na 365 DA BARRA?</strong>
+                        <p>Você cria sua conta gratuitamente abaixo. Por segurança da banca, <strong>não há depósito automático</strong>: após criar sua conta, o <strong>Administrador / Cambista libera seu saldo</strong> ou você pode gerar <strong>Pré-Bilhetes com Código PIN</strong> na hora!</p>
+                    </div>
+                </div>
+
+                <form id="user-register-form" onsubmit="handleUserRegistrationSubmit(event)" style="display:flex; flex-direction:column; gap:12px;">
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label>Nome Completo do Apostador *</label>
+                            <input type="text" id="reg-full-name" class="stake-input" placeholder="Ex: João Pedro Santos" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Usuário / Apelido de Acesso *</label>
+                            <input type="text" id="reg-username" class="stake-input" placeholder="Ex: joaopedro365" required>
+                        </div>
+                    </div>
+
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label>WhatsApp / Telefone (Contato Cambista) *</label>
+                            <input type="text" id="reg-phone" class="stake-input" placeholder="Ex: (71) 99988-7766" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Chave PIX (Para Receber Prêmios) *</label>
+                            <input type="text" id="reg-pix" class="stake-input" placeholder="CPF, Telefone ou E-mail PIX" required>
+                        </div>
+                    </div>
+
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label>Senha de Acesso *</label>
+                            <input type="password" id="reg-password" class="stake-input" placeholder="Digite uma senha" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Solicitar Saldo Inicial ao Admin (Opcional)</label>
+                            <select id="reg-initial-request" class="stake-input">
+                                <option value="0">Não pedir agora (Apenas criar conta / Usar PIN)</option>
+                                <option value="50" selected>Já solicitar R$ 50,00 de saldo ao Admin</option>
+                                <option value="100">Já solicitar R$ 100,00 de saldo ao Admin</option>
+                                <option value="250">Já solicitar R$ 250,00 de saldo ao Admin</option>
+                                <option value="500">Já solicitar R$ 500,00 de saldo ao Admin</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="place-bet-btn" style="margin-top:4px; height:44px; font-size:14px;">
+                        <i class="fas fa-check-circle"></i> Concluir Cadastro & Entrar na Conta
+                    </button>
+                </form>
+            </div>
+
+            <!-- ABA 3: ENTRAR / TROCAR DE CONTA RÁPIDO -->
+            <div id="acc-tab-switch" class="account-tab-pane" style="display:none;">
+                <p style="font-size:12.5px; color:var(--text-muted); margin-bottom:10px;">
+                    Selecione uma das contas cadastradas abaixo para entrar imediatamente ou cadastre um novo cliente:
+                </p>
+                <div id="user-switch-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================================================
+         MODAL 2: SOLICITAR LIBERAÇÃO DE SALDO AO ADMIN
+         ========================================================================= -->
+    <div class="modal-overlay" id="request-balance-modal">
+        <div class="modal-card" style="width:460px; max-width:94vw;">
+            <div class="modal-header">
+                <h3 style="font-size:16px;"><i class="fas fa-hand-holding-usd" style="color:var(--brand-gold);"></i> Solicitar Liberação de Saldo</h3>
+                <button class="modal-close" onclick="closeRequestBalanceModal()">✕</button>
+            </div>
+            <p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:14px; line-height:1.5;">
+                Na <strong>365 DA BARRA</strong> o saldo de apostas é liberado diretamente pelo <strong>Administrador / Cambista</strong>. Escolha ou digite o valor para enviar o pedido em nome de <strong id="req-client-name" style="color:var(--brand-gold);">Cliente</strong>:
+            </p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+                <button class="place-bet-btn" style="background:var(--brand-purple);" onclick="sendBalanceRequestToAdmin(50)">+ R$ 50,00</button>
+                <button class="place-bet-btn" style="background:var(--brand-purple);" onclick="sendBalanceRequestToAdmin(100)">+ R$ 100,00</button>
+                <button class="place-bet-btn" style="background:var(--brand-purple);" onclick="sendBalanceRequestToAdmin(250)">+ R$ 250,00</button>
+                <button class="place-bet-btn" style="background:var(--brand-purple);" onclick="sendBalanceRequestToAdmin(500)">+ R$ 500,00</button>
+            </div>
+            <div style="padding-top:12px; border-top:1px solid var(--border-color);">
+                <label style="font-size:11.5px; font-weight:700; color:var(--text-muted); display:block; margin-bottom:6px;">Ou digite outro valor personalizado (R$):</label>
+                <div style="display:flex; gap:8px;">
+                    <input type="number" id="custom-req-amount" class="stake-input" placeholder="Ex: 150,00" min="10">
+                    <button class="place-bet-btn" style="width:auto; padding:0 18px; white-space:nowrap;" onclick="sendCustomBalanceRequest()">
+                        <i class="fas fa-paper-plane"></i> Enviar Pedido
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================================================
+         MODAL 3: PAINEL DO ADMINISTRADOR / GERENTE / CAMBISTA
+         ========================================================================= -->
+    <div class="modal-overlay" id="admin-modal">
+        <div class="modal-card" style="width:650px; max-width:96vw; max-height:90vh; overflow-y:auto;">
+            <div class="modal-header">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <i class="fas fa-user-shield" style="font-size:22px; color:var(--brand-gold);"></i>
+                    <div>
+                        <h3 style="font-size:16px; color:var(--brand-gold);">Painel do Administrador & Cambista • 365 DA BARRA</h3>
+                        <span style="font-size:11px; color:var(--text-muted);">Liberação de Saldo, Validação de Pré-Bilhetes PIN e Gestão de Clientes</span>
+                    </div>
+                </div>
+                <button class="modal-close" onclick="closeAdminModal()">✕</button>
+            </div>
+
+            <!-- Resumo Rápido da Banca -->
+            <div id="admin-kpi-strip" class="admin-kpi-strip"></div>
+
+            <!-- 1. Solicitações de Saldo dos Clientes -->
+            <div class="admin-section-box">
+                <h4 class="admin-section-title">📲 Solicitações de Saldo Pendentes (Aprovar Liberação)</h4>
+                <div id="admin-requests-list"></div>
+            </div>
+
+            <!-- 2. Pré-Bilhetes Pendentes (Validar Código PIN) -->
+            <div class="admin-section-box">
+                <h4 class="admin-section-title">📌 Pré-Bilhetes Aguardando Validação (Código PIN)</h4>
+                <div id="admin-pins-list"></div>
+            </div>
+
+            <!-- 3. Gestão de Clientes Cadastrados & Liberação Manual de Saldo -->
+            <div class="admin-section-box">
+                <h4 class="admin-section-title">👥 Clientes Cadastrados na Banca (Liberar / Ajustar Saldo)</h4>
+                <div id="admin-clients-list"></div>
+            </div>
+
+            <!-- 4. Cadastrar Novo Cliente Direto pelo Painel Admin -->
+            <div class="admin-section-box" style="margin-bottom:0;">
+                <h4 class="admin-section-title">➕ Cadastrar Novo Cliente Direto pelo Admin (Com Saldo Inicial)</h4>
+                <div style="display:grid; grid-template-columns:1.3fr 1fr 1fr auto; gap:8px;">
+                    <input type="text" id="admin-new-client-name" class="stake-input" placeholder="Nome do Cliente">
+                    <input type="text" id="admin-new-client-phone" class="stake-input" placeholder="WhatsApp / PIX">
+                    <input type="number" id="admin-new-client-bal" class="stake-input" placeholder="Saldo Inicial (R$)">
+                    <button class="btn-deposit" onclick="adminCreateNewClient()"><i class="fas fa-plus"></i> Cadastrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: LEITOR DE MATÉRIA COMPLETA & PLAYER DE VÍDEO HD -->
+    <div class="modal-overlay" id="news-article-modal">
+        <div class="modal-card" style="width:780px; max-width:94vw; max-height:90vh; overflow-y:auto; padding:0;">
+            <div style="position:sticky; top:0; z-index:20; background:var(--brand-purple); padding:14px 20px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+                <span id="modal-news-category" style="font-size:11.5px; font-weight:900; color:var(--accent-yellow); text-transform:uppercase; letter-spacing:0.6px;">📰 FUTEBOL EM TEMPO REAL</span>
+                <button class="modal-close" onclick="closeNewsArticleModal()" style="color:#fff;">✕</button>
+            </div>
+            <div id="modal-news-body" style="padding:20px;"></div>
+        </div>
+    </div>
+
+    <!-- Modal: COMPROVANTE DIGITAL DO BILHETE & CÓDIGO PIN (365 DA BARRA) -->
+    <div class="modal-overlay" id="ticket-receipt-modal">
+        <div class="modal-card" style="width:450px; max-height:90vh; overflow-y:auto;">
+            <div class="modal-header">
+                <h3 style="font-size:15px; color:var(--accent-yellow); display:flex; align-items:center; gap:6px;">🧾 Comprovante Oficial • 365 DA BARRA</h3>
+                <button class="modal-close" onclick="closeTicketReceiptModal()">✕</button>
+            </div>
+            <div id="ticket-receipt-body"></div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script src="js/data.js"></script>
+    <script src="js/radar.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
