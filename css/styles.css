@@ -3974,170 +3974,329 @@ body.theme-light .oddAndPossibleReturn .possibleReturn span strong {
     color: var(--brand-gold);
 }
 
-/* Cartões de Portais Externos (Multicanais, Futemax, CazéTV) */
-.stream-external-portal-card {
-    padding: 28px 20px;
-    text-align: center;
-    width: 100%;
-    max-width: 580px;
-    background: linear-gradient(135deg, #1b1233 0%, #120b24 100%);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-    margin: 16px;
-}
+/* ==========================================================================
+   REPRODUTOR AO VIVO DE CINEMA EMBUTIDO (100% DIRETO NO SITE)
+   ========================================================================== */
 
-.stream-external-portal-card.multicanais-theme {
-    border-color: rgba(255, 196, 0, 0.4);
-}
-
-.stream-external-portal-card.futemax-theme {
-    border-color: rgba(255, 61, 87, 0.4);
-}
-
-.sepc-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--brand-purple);
-    color: #ffffff;
-    font-size: 11px;
-    font-weight: 900;
-    padding: 4px 12px;
-    border-radius: 20px;
-    margin-bottom: 12px;
-    letter-spacing: 0.5px;
-}
-
-.sepc-match-title {
-    font-size: 18px;
-    font-weight: 900;
-    color: #ffffff;
-    margin-bottom: 6px;
-}
-
-.sepc-status {
-    font-size: 12px;
-    color: #34ca73;
-    font-weight: 800;
-    margin-bottom: 12px;
-}
-
-.sepc-desc {
-    font-size: 12.5px;
-    color: rgba(255, 255, 255, 0.75);
-    line-height: 1.5;
-    margin-bottom: 18px;
-}
-
-.sepc-actions {
-    margin-bottom: 14px;
-}
-
-.sepc-main-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: linear-gradient(135deg, #ffc400 0%, #e0aa00 100%);
-    color: #151026;
-    border: none;
-    font-size: 14px;
-    font-weight: 900;
-    padding: 12px 24px;
-    border-radius: 8px;
-    cursor: pointer;
-    box-shadow: 0 6px 18px rgba(255, 196, 0, 0.4);
-    transition: all 0.2s ease;
-}
-
-.sepc-main-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(255, 196, 0, 0.6);
-}
-
-.sepc-main-btn.multi {
-    background: linear-gradient(135deg, #ffc400 0%, #ff9100 100%);
-}
-
-.sepc-main-btn.fute {
-    background: linear-gradient(135deg, #ff3d57 0%, #C9302C 100%);
-    color: #ffffff;
-    box-shadow: 0 6px 18px rgba(255, 61, 87, 0.45);
-}
-
-.sepc-main-btn.fute:hover {
-    box-shadow: 0 8px 24px rgba(255, 61, 87, 0.65);
-}
-
-.sepc-main-btn.caze {
-    background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
-    color: #ffffff;
-    box-shadow: 0 6px 18px rgba(255, 0, 0, 0.4);
-}
-
-.sepc-server-pills {
-    display: flex;
-    justify-content: center;
-    gap: 6px;
-    flex-wrap: wrap;
-    margin-bottom: 12px;
-}
-
-.sepc-server-pill {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 11px;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-
-.sepc-server-pill:hover,
-.sepc-server-pill.active {
-    background: var(--brand-purple);
-    border-color: var(--brand-gold);
-    color: #ffffff;
-}
-
-.sepc-footer-note {
-    font-size: 11px;
-    color: rgba(255, 255, 255, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-}
-
-/* Player Vídeo HTML5 (Gols & Lances HD MP4) */
-.stream-video-screen {
+.stream-live-broadcast-screen {
     width: 100%;
     height: 100%;
     display: flex;
     flex-direction: column;
+    background: #06040b;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8);
+}
+
+/* Barra Superior de Canais & Servidores do Player */
+.stream-channel-subbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: linear-gradient(180deg, rgba(20, 14, 38, 0.95) 0%, rgba(12, 8, 24, 0.8) 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    flex-wrap: wrap;
+    gap: 8px;
+    z-index: 5;
+}
+
+.scs-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.scs-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--brand-purple);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 900;
+    padding: 3px 10px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.scs-ping {
+    font-size: 11px;
+    color: #34ca73;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.scs-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.scs-srv-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.scs-srv-btn:hover,
+.scs-srv-btn.active {
+    background: var(--brand-gold);
+    color: #120b24;
+    border-color: var(--brand-gold);
+    font-weight: 900;
+}
+
+/* Janela de Vídeo Responsiva 16:9 Cinema */
+.stream-video-viewport {
+    position: relative;
+    width: 100%;
+    min-height: 290px;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background: #000000;
+    overflow: hidden;
+}
+
+.stream-video-viewport.youtube-wrap {
+    padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+    height: 0;
+    min-height: 0;
+}
+
+.stream-cinema-iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
 }
 
 .stream-html5-player {
     width: 100%;
+    height: 100%;
     max-height: 420px;
     object-fit: contain;
     background: #000000;
     outline: none;
 }
 
-.stream-video-title-bar {
-    padding: 8px 12px;
-    background: #110c22;
-    font-size: 12px;
-    font-weight: 800;
-    color: #ffffff;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+/* Marca d'água oficial da transmissão no canto */
+.stream-video-watermark {
+    position: absolute;
+    top: 12px;
+    right: 12px;
     display: flex;
     align-items: center;
     gap: 6px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    pointer-events: none;
+    z-index: 4;
+}
+
+.stream-video-watermark img {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+}
+
+.stream-video-watermark span {
+    font-size: 10px;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+}
+
+/* Placar Flutuante de TV (Scorebug HUD) Sobre o Vídeo */
+.stream-broadcast-hud-overlay {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    pointer-events: none;
+    z-index: 4;
+}
+
+.stream-broadcast-hud-overlay.mini {
+    bottom: auto;
+    top: 12px;
+    left: 12px;
+}
+
+.sb-scorebug {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.85);
+    padding: 5px 12px;
+    border-radius: 6px;
+    border-left: 3px solid var(--brand-gold);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7);
+}
+
+.sb-team {
+    font-size: 12px;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: 0.4px;
+}
+
+.sb-score {
+    font-size: 15px;
+    font-weight: 900;
+    color: var(--brand-gold);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.sb-divider {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.sb-clock {
+    font-size: 11px;
+    font-weight: 800;
+    color: #ffc400;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: 4px;
+}
+
+.sb-clock.live {
+    color: #ff3d57;
+    background: rgba(255, 61, 87, 0.15);
+}
+
+.sb-event-ticker {
+    display: inline-block;
+    align-self: flex-start;
+    font-size: 10px;
+    font-weight: 800;
+    color: #ffffff;
+    background: linear-gradient(135deg, #C9302C 0%, #ff3d57 100%);
+    padding: 2px 8px;
+    border-radius: 3px;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 6px rgba(255, 61, 87, 0.4);
+}
+
+/* Barra de Controles Inferior do Player Esportivo */
+.stream-player-bottom-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: #0d091a;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 5;
+}
+
+.spc-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.15s ease;
+}
+
+.spc-btn:hover {
+    background: var(--brand-purple);
+    color: var(--brand-gold);
+    border-color: var(--brand-gold);
+}
+
+.spc-live-text {
+    font-size: 11px;
+    font-weight: 800;
+    color: #34ca73;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Modo Cinema Expandido */
+.livestream-stage.cinema-expanded {
+    position: fixed;
+    top: 55px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1050;
+    background: #06040b;
+    border-radius: 0;
+    border: none;
+    padding: 12px;
+}
+
+.livestream-stage.cinema-expanded .stream-player-container {
+    height: calc(100vh - 170px);
+}
+
+/* Botão WhatsApp Cambista no Cabeçalho */
+.btn-whatsapp-header {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: #25D366;
+    color: #ffffff !important;
+    text-decoration: none;
+    font-size: 12.5px;
+    font-weight: 800;
+    padding: 7px 14px;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.35);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-whatsapp-header:hover {
+    background: #20ba59;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(37, 211, 102, 0.5);
+    color: #ffffff;
+}
+
+.sb-quick-btn.wpp {
+    background: rgba(37, 211, 102, 0.15);
+    border-color: #25D366;
+    color: #25D366 !important;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.sb-quick-btn.wpp:hover {
+    background: #25D366;
+    color: #ffffff !important;
 }
 
 /* Guia "Onde Assistir na TV & Streaming Oficial" */
@@ -4179,41 +4338,47 @@ body.theme-light .oddAndPossibleReturn .possibleReturn span strong {
 
 .tv-direct-links {
     display: flex;
-    gap: 6px;
+    gap: 8px;
     flex-wrap: wrap;
+    align-items: center;
 }
 
 .direct-stream-link-btn {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    font-size: 11px;
+    gap: 6px;
+    font-size: 11.5px;
     font-weight: 800;
-    padding: 4px 10px;
+    padding: 6px 12px;
     border-radius: 5px;
     border: none;
     cursor: pointer;
     transition: all 0.15s ease;
 }
 
-.direct-stream-link-btn.multi {
-    background: #ffc400;
-    color: #151026;
+.direct-stream-link-btn.wpp {
+    background: #25D366;
+    color: #ffffff !important;
+    text-decoration: none;
+    box-shadow: 0 4px 10px rgba(37, 211, 102, 0.35);
 }
 
-.direct-stream-link-btn.fute {
-    background: #ff3d57;
-    color: #ffffff;
-}
-
-.direct-stream-link-btn.caze {
-    background: #ff0000;
-    color: #ffffff;
-}
-
-.direct-stream-link-btn:hover {
+.direct-stream-link-btn.wpp:hover {
+    background: #20ba59;
+    box-shadow: 0 6px 16px rgba(37, 211, 102, 0.5);
     transform: translateY(-1px);
-    opacity: 0.92;
+}
+
+.direct-stream-link-btn.reload {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.direct-stream-link-btn.reload:hover {
+    background: var(--brand-purple);
+    border-color: var(--brand-gold);
+    color: var(--brand-gold);
 }
 
 /* ==========================================================================

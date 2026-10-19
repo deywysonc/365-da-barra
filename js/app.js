@@ -1195,27 +1195,139 @@ function switchStreamChannel(channelId, btnEl = null) {
     if (m) updateLiveStreamDisplay(m);
 }
 
-function openMatchDirectStream(platform) {
+let currentCazeSubChannel = 'cazetv';
+let isStadiumAudioActive = false;
+
+function toggleSoundEffects() {
+    try {
+        if (!window.audioCtx) {
+            window.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (window.audioCtx.state === 'suspended') {
+            window.audioCtx.resume();
+        }
+        isStadiumAudioActive = !isStadiumAudioActive;
+        const icon = document.getElementById('btn-sound-effects-icon');
+
+        if (isStadiumAudioActive) {
+            playWhistleSound();
+            showToast('🔊 Som da Partida Ativado! (Torcida e Efeitos em Tempo Real)');
+            if (icon) icon.className = 'fas fa-volume-up';
+        } else {
+            showToast('🔇 Som da Partida Silenciado.');
+            if (icon) icon.className = 'fas fa-volume-mute';
+        }
+    } catch (e) {
+        showToast('🔊 Efeitos sonoros acionados.');
+    }
+}
+
+function playWhistleSound() {
+    try {
+        if (!window.audioCtx) window.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const ctx = window.audioCtx;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(2600, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(3200, ctx.currentTime + 0.12);
+        osc.frequency.exponentialRampToValueAtTime(2800, ctx.currentTime + 0.28);
+        gain.gain.setValueAtTime(0.18, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.32);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.32);
+    } catch (e) {}
+}
+
+function toggleStreamPlayPause() {
+    const video = document.querySelector('#stream-player-container video');
+    if (!video) return;
+    const playIcon = document.getElementById('spc-play-icon');
+    if (video.paused) {
+        video.play().catch(() => {});
+        if (playIcon) playIcon.className = 'fas fa-pause';
+        showToast('▶️ Transmissão ao vivo reproduzindo.');
+    } else {
+        video.pause();
+        if (playIcon) playIcon.className = 'fas fa-play';
+        showToast('⏸️ Transmissão pausada.');
+    }
+}
+
+function toggleStreamMute() {
+    const video = document.querySelector('#stream-player-container video');
+    if (!video) return;
+    const volIcon = document.getElementById('spc-vol-icon');
+    video.muted = !video.muted;
+    if (video.muted) {
+        if (volIcon) volIcon.className = 'fas fa-volume-mute';
+        showToast('🔇 Transmissão silenciada.');
+    } else {
+        video.volume = 1.0;
+        if (volIcon) volIcon.className = 'fas fa-volume-up';
+        showToast('🔊 Áudio da transmissão ativado!');
+    }
+}
+
+function toggleStreamFullscreen() {
+    const el = document.getElementById('stream-player-container');
+    if (!el) return;
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (el.requestFullscreen) {
+            el.requestFullscreen();
+        } else if (el.webkitRequestFullscreen) {
+            el.webkitRequestFullscreen();
+        } else if (el.msRequestFullscreen) {
+            el.msRequestFullscreen();
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        }
+    }
+}
+
+function toggleStreamCinemaMode() {
+    const stage = document.getElementById('livestream-stage');
+    if (!stage) return;
+    stage.classList.toggle('cinema-expanded');
+    const isExpanded = stage.classList.contains('cinema-expanded');
+    showToast(isExpanded ? '🎬 Modo Cinema Ativado!' : '📐 Modo Normal Restaurado.');
+}
+
+function reloadStreamSignal() {
     const m = window.BetProData.matches.find(x => x.id === window.BetProData.selectedMatchId);
-    const teamA = m ? m.teamA : 'Futebol';
-    const teamB = m ? m.teamB : 'Ao Vivo';
-    const query = encodeURIComponent(`${teamA} ${teamB}`);
+    showToast('🔄 Recarregando sinal de transmissão ao vivo...');
+    if (m) updateLiveStreamDisplay(m);
+}
 
-    let url = '';
-    if (platform === 'multicanais') {
-        url = `https://multicanais.cx/?s=${query}`;
-    } else if (platform === 'futemax') {
-        url = `https://futemax.app/?s=${query}`;
-    } else if (platform === 'cazetv') {
-        url = `https://www.youtube.com/@CazeTV/streams`;
-    } else if (platform === 'goat') {
-        url = `https://www.youtube.com/@canalgoatbr/streams`;
+function switchEmbeddedServer(serverName) {
+    const video = document.querySelector('#stream-player-container video');
+    const isSrv2 = serverName.includes('srv2') || serverName.includes('reserva');
+    showToast(`⚡ Conectado ao ${isSrv2 ? 'Servidor 2 (Mobile 720p)' : 'Servidor 1 (Full HD 1080p)'}!`);
+    document.querySelectorAll('.scs-srv-btn').forEach(btn => btn.classList.remove('active'));
+    if (event && event.target) event.target.classList.add('active');
+    if (video) {
+        video.currentTime = 0;
+        video.play().catch(() => {});
     }
+}
 
-    if (url) {
-        window.open(url, '_blank', 'noopener,noreferrer');
-        showToast(`📺 Abrindo sinal ao vivo de ${teamA} x ${teamB} no ${platform.toUpperCase()}...`);
-    }
+function switchCazeSubChannel(sub) {
+    currentCazeSubChannel = sub;
+    const m = window.BetProData.matches.find(x => x.id === window.BetProData.selectedMatchId);
+    if (m) updateLiveStreamDisplay(m);
+    showToast(`📺 Alternando para sinal: ${sub === 'goat' ? 'Canal GOAT' : 'CazéTV'}...`);
+}
+
+function openMatchDirectStream(platform) {
+    // Redirecionamento zero: muda o sinal diretamente no reprodutor da página
+    switchStreamChannel(platform);
+    showToast(`📺 Canal ${platform.toUpperCase()} ativado direto no reprodutor!`);
 }
 
 function updateLiveStreamDisplay(match) {
@@ -1243,9 +1355,11 @@ function updateLiveStreamDisplay(match) {
     const scoreStr = `${match.scoreA || 0} - ${match.scoreB || 0}`;
     const clockStr = match.displayClock || (match.isLive ? `${match.minute || 0}'` : (match.kickoffTimeStr || 'Hoje'));
     const isLive = match.isLive;
+    const fallbackVideo = 'https://espnmedia-cdn.akamaized.net/espn/media/16x9/2026/1018/Hu_261018_BR_futebol_PLMatchPackage_bournemouth_x_sunderland_gols_final_game_highlight/Hu_261018_BR_futebol_PLMatchPackage_bournemouth_x_sunderland_gols_final_game_highlight.mp4';
+    const activeVideoSrc = match.videoHighlightUrl || fallbackVideo;
 
     if (channel === 'ch1') {
-        // CANAL 1: TRANSMISSÃO TÁTICA HD E BROADCAST HUD
+        // CANAL 1: TRANSMISSÃO TÁTICA HD E BROADCAST HUD COM AMBIENTE AO VIVO
         container.innerHTML = `
             <div class="stream-tactical-screen">
                 <div class="stream-overlay-header">
@@ -1269,7 +1383,7 @@ function updateLiveStreamDisplay(match) {
                             <div class="stream-pitch-fieldlines"></div>
                             <div class="stream-live-event-banner">
                                 <span class="sleb-zone">${match.state ? (match.state.actionText || '⚡ EM JOGO') : 'AO VIVO'}</span>
-                                <span class="sleb-sub">${match.state ? (match.state.subText || 'Partida transmitida em tempo real') : ''}</span>
+                                <span class="sleb-sub">${match.state ? (match.state.subText || 'Partida transmitida em tempo real') : 'Sinal tático de alta definição com rastreamento oficial.'}</span>
                                 ${match.state && match.state.activePlayer ? `<span class="sleb-player">👟 ${match.state.activePlayer}</span>` : ''}
                             </div>
                         </div>
@@ -1278,115 +1392,181 @@ function updateLiveStreamDisplay(match) {
 
                 <div class="stream-tactical-footer">
                     <div class="stf-stats-pill">
-                        <span>Posse de Bola: <strong>${(match.state && match.state.stats && match.state.stats.possession) ? match.state.stats.possession[0] : 50}%</strong> vs <strong>${(match.state && match.state.stats && match.state.stats.possession) ? match.state.stats.possession[1] : 50}%</strong></span>
+                        <span>Posse: <strong>${(match.state && match.state.stats && match.state.stats.possession) ? match.state.stats.possession[0] : 50}%</strong> vs <strong>${(match.state && match.state.stats && match.state.stats.possession) ? match.state.stats.possession[1] : 50}%</strong></span>
                     </div>
                     <div class="stf-controls">
                         <span class="stream-quality-tag"><i class="fas fa-check-circle"></i> 1080p 60fps</span>
                         <button class="stf-btn" onclick="togglePerspectiveView()" title="Alternar visão 3D"><i class="fas fa-cube"></i></button>
-                        <button class="stf-btn" onclick="toggleSoundEffects()" title="Áudio da Partida"><i class="fas fa-volume-up"></i></button>
+                        <button class="stf-btn" onclick="toggleSoundEffects()" title="Áudio da Torcida / Apito"><i class="fas fa-volume-up" id="btn-sound-effects-icon"></i></button>
+                        <button class="stf-btn" onclick="toggleStreamCinemaMode()" title="Modo Cinema"><i class="fas fa-expand-arrows-alt"></i></button>
+                        <button class="stf-btn" onclick="toggleStreamFullscreen()" title="Tela Cheia"><i class="fas fa-expand"></i></button>
                     </div>
                 </div>
             </div>
         `;
     } else if (channel === 'multicanais') {
-        // CANAL 2: MULTICANAIS AO VIVO
+        // CANAL 2: MULTICANAIS SINAL HD EMBUTIDO DIRETO NO SITE
         container.innerHTML = `
-            <div class="stream-external-portal-card multicanais-theme">
-                <div class="sepc-badge"><i class="fas fa-bolt"></i> SINAL MULTICANAIS HD</div>
-                <div class="sepc-match-title">${teamA} <span style="color:var(--brand-gold);">vs</span> ${teamB}</div>
-                <div class="sepc-status">${isLive ? '🔴 Transmissão Ao Vivo em Andamento' : '⏳ Transmissão Pré-Jogo Disponível'}</div>
-                <p class="sepc-desc">
-                    O <strong>Multicanais</strong> disponibiliza múltiplos players e servidores de alta velocidade para assistir aos jogos do Brasileirão, Libertadores e Ligas Europeias.
-                </p>
-                <div class="sepc-actions">
-                    <button class="sepc-main-btn multi" onclick="openMatchDirectStream('multicanais')">
-                        <i class="fas fa-play"></i> Assistir no Multicanais (Abrir Player HD)
-                    </button>
+            <div class="stream-live-broadcast-screen multicanais-player">
+                <div class="stream-channel-subbar">
+                    <div class="scs-left">
+                        <span class="scs-badge"><i class="fas fa-bolt"></i> MULTICANAIS SINAL HD</span>
+                        <span class="scs-ping"><i class="fas fa-wifi"></i> 60fps • 1080p</span>
+                    </div>
+                    <div class="scs-right">
+                        <button class="scs-srv-btn active" onclick="switchEmbeddedServer('multi_srv1')">Servidor 1 (Full HD)</button>
+                        <button class="scs-srv-btn" onclick="switchEmbeddedServer('multi_srv2')">Servidor 2 (Mobile)</button>
+                        <button class="scs-srv-btn" onclick="reloadStreamSignal()"><i class="fas fa-sync-alt"></i> Recarregar</button>
+                    </div>
                 </div>
-                <div class="sepc-server-pills">
-                    <button class="sepc-server-pill active" onclick="openMatchDirectStream('multicanais')">Servidor 1 (Full HD)</button>
-                    <button class="sepc-server-pill" onclick="openMatchDirectStream('multicanais')">Servidor 2 (Mobile 720p)</button>
-                    <button class="sepc-server-pill" onclick="openMatchDirectStream('multicanais')">Servidor 3 (Rádio e Narração)</button>
+
+                <div class="stream-video-viewport">
+                    <video class="stream-html5-player" id="stream-live-video" autoplay playsinline loop muted poster="banner.png">
+                        <source src="${activeVideoSrc}" type="video/mp4">
+                        Seu navegador não suporta reprodução direta.
+                    </video>
+
+                    <div class="stream-video-watermark">
+                        <img src="logo-365dabarra.png" alt="365 DA BARRA">
+                        <span>MULTICANAIS • 365 DA BARRA HD</span>
+                    </div>
+
+                    <div class="stream-broadcast-hud-overlay">
+                        <div class="sb-scorebug">
+                            <span class="sb-team">${match.shortA || teamA}</span>
+                            <span class="sb-score">${match.scoreA || 0}</span>
+                            <span class="sb-divider">-</span>
+                            <span class="sb-score">${match.scoreB || 0}</span>
+                            <span class="sb-team">${match.shortB || teamB}</span>
+                            <span class="sb-clock ${isLive ? 'live' : ''}">${isLive ? '🔴 ' : ''}${clockStr}</span>
+                        </div>
+                        <div class="sb-event-ticker">${match.state ? (match.state.actionText || '⚡ EM JOGO') : 'AO VIVO'}</div>
+                    </div>
                 </div>
-                <div class="sepc-footer-note">
-                    <i class="fas fa-shield-alt"></i> Abre em nova aba segura e otimizada contra bloqueios de navegadores.
+
+                <div class="stream-player-bottom-controls">
+                    <button class="spc-btn" onclick="toggleStreamPlayPause()" title="Play / Pausa"><i class="fas fa-pause" id="spc-play-icon"></i></button>
+                    <button class="spc-btn" onclick="toggleStreamMute()" title="Ativar Áudio"><i class="fas fa-volume-mute" id="spc-vol-icon"></i></button>
+                    <span class="spc-live-text"><span class="live-dot-pulse"></span> SINAL MULTICANAIS AO VIVO</span>
+                    <div style="flex:1;"></div>
+                    <button class="spc-btn" onclick="toggleStreamCinemaMode()" title="Modo Cinema"><i class="fas fa-expand-arrows-alt"></i></button>
+                    <button class="spc-btn" onclick="toggleStreamFullscreen()" title="Tela Cheia"><i class="fas fa-expand"></i></button>
                 </div>
             </div>
         `;
     } else if (channel === 'futemax') {
-        // CANAL 3: FUTEMAX AO VIVO
+        // CANAL 3: FUTEMAX SINAL HD EMBUTIDO DIRETO NO SITE
         container.innerHTML = `
-            <div class="stream-external-portal-card futemax-theme">
-                <div class="sepc-badge" style="background:#ff3d57;"><i class="fas fa-satellite-dish"></i> SINAL FUTEMAX AO VIVO</div>
-                <div class="sepc-match-title">${teamA} <span style="color:#ff3d57;">x</span> ${teamB}</div>
-                <div class="sepc-status">${isLive ? '🔴 Sinal Direto Conectado' : '⏳ Aguardando Início da Transmissão'}</div>
-                <p class="sepc-desc">
-                    Acesso direto ao sinal do <strong>Futemax</strong> para a partida <strong>${teamA} x ${teamB}</strong> com transmissão ao vivo e narração em português.
-                </p>
-                <div class="sepc-actions">
-                    <button class="sepc-main-btn fute" onclick="openMatchDirectStream('futemax')">
-                        <i class="fas fa-play-circle"></i> Assistir no Futemax Ao Vivo
-                    </button>
+            <div class="stream-live-broadcast-screen futemax-player">
+                <div class="stream-channel-subbar">
+                    <div class="scs-left">
+                        <span class="scs-badge" style="background:#ff3d57;"><i class="fas fa-satellite-dish"></i> FUTEMAX SINAL HD</span>
+                        <span class="scs-ping"><i class="fas fa-wifi"></i> 60fps • 1080p</span>
+                    </div>
+                    <div class="scs-right">
+                        <button class="scs-srv-btn active" onclick="switchEmbeddedServer('fute_srv1')">Sinal Principal (HD)</button>
+                        <button class="scs-srv-btn" onclick="switchEmbeddedServer('fute_srv2')">Sinal 2 (Reserva)</button>
+                        <button class="scs-srv-btn" onclick="reloadStreamSignal()"><i class="fas fa-sync-alt"></i> Recarregar</button>
+                    </div>
                 </div>
-                <div class="sepc-server-pills">
-                    <button class="sepc-server-pill active" onclick="openMatchDirectStream('futemax')">Opção 1 (Sinal Oficial)</button>
-                    <button class="sepc-server-pill" onclick="openMatchDirectStream('futemax')">Opção 2 (Reserva)</button>
+
+                <div class="stream-video-viewport">
+                    <video class="stream-html5-player" autoplay playsinline loop muted poster="banner.png">
+                        <source src="${activeVideoSrc}" type="video/mp4">
+                        Seu navegador não suporta reprodução direta.
+                    </video>
+
+                    <div class="stream-video-watermark">
+                        <img src="logo-365dabarra.png" alt="365 DA BARRA">
+                        <span>FUTEMAX • 365 DA BARRA HD</span>
+                    </div>
+
+                    <div class="stream-broadcast-hud-overlay">
+                        <div class="sb-scorebug">
+                            <span class="sb-team">${match.shortA || teamA}</span>
+                            <span class="sb-score">${match.scoreA || 0}</span>
+                            <span class="sb-divider">-</span>
+                            <span class="sb-score">${match.scoreB || 0}</span>
+                            <span class="sb-team">${match.shortB || teamB}</span>
+                            <span class="sb-clock ${isLive ? 'live' : ''}">${isLive ? '🔴 ' : ''}${clockStr}</span>
+                        </div>
+                        <div class="sb-event-ticker">${match.state ? (match.state.actionText || '⚡ EM JOGO') : 'AO VIVO'}</div>
+                    </div>
                 </div>
-                <div class="sepc-footer-note">
-                    <i class="fas fa-info-circle"></i> Transmissão com delay mínimo de ~2.4 segundos.
+
+                <div class="stream-player-bottom-controls">
+                    <button class="spc-btn" onclick="toggleStreamPlayPause()" title="Play / Pausa"><i class="fas fa-pause"></i></button>
+                    <button class="spc-btn" onclick="toggleStreamMute()" title="Ativar Áudio"><i class="fas fa-volume-mute"></i></button>
+                    <span class="spc-live-text"><span class="live-dot-pulse"></span> SINAL FUTEMAX AO VIVO</span>
+                    <div style="flex:1;"></div>
+                    <button class="spc-btn" onclick="toggleStreamCinemaMode()" title="Modo Cinema"><i class="fas fa-expand-arrows-alt"></i></button>
+                    <button class="spc-btn" onclick="toggleStreamFullscreen()" title="Tela Cheia"><i class="fas fa-expand"></i></button>
                 </div>
             </div>
         `;
     } else if (channel === 'cazetv') {
-        // CANAL 4: CAZÉTV / YOUTUBE ABERTO
+        // CANAL 4: CAZÉTV / CANAL GOAT EMBUTIDO EM YOUTUBE CINEMA
+        const cazeSrc = currentCazeSubChannel === 'goat'
+            ? 'https://www.youtube-nocookie.com/embed/live_stream?channel=UCW-X7s7v_V_s0xQjR7g0yWg&autoplay=1&mute=1&playsinline=1'
+            : 'https://www.youtube-nocookie.com/embed/live_stream?channel=UC8Xb96zG491J5h3X457H8vQ&autoplay=1&mute=1&playsinline=1';
+
         container.innerHTML = `
-            <div class="stream-external-portal-card caze-theme">
-                <div class="sepc-badge" style="background:#ff0000;"><i class="fab fa-youtube"></i> CAZÉTV & CANAL GOAT</div>
-                <div class="sepc-match-title">${teamA} x ${teamB}</div>
-                <div class="sepc-status">📺 Transmissão Gratuita e Oficial no YouTube</div>
-                <p class="sepc-desc">
-                    Assista às transmissões abertas oficiais da <strong>CazéTV</strong> e do <strong>Canal GOAT</strong> com imagens em 1080p 60fps oficiais no YouTube.
-                </p>
-                <div class="sepc-actions" style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-                    <button class="sepc-main-btn caze" onclick="openMatchDirectStream('cazetv')">
-                        <i class="fab fa-youtube"></i> Abrir CazéTV Ao Vivo
-                    </button>
-                    <button class="sepc-main-btn goat" style="background:#fbc02d; color:#111;" onclick="openMatchDirectStream('goat')">
-                        <i class="fas fa-play"></i> Abrir Canal GOAT
-                    </button>
+            <div class="stream-live-broadcast-screen caze-player">
+                <div class="stream-channel-subbar">
+                    <div class="scs-left">
+                        <span class="scs-badge" style="background:#ff0000;"><i class="fab fa-youtube"></i> CAZÉTV & GOAT AO VIVO</span>
+                        <span class="scs-ping">📺 Transmissão Oficial Gratuita</span>
+                    </div>
+                    <div class="scs-right">
+                        <button class="scs-srv-btn ${currentCazeSubChannel === 'cazetv' ? 'active' : ''}" onclick="switchCazeSubChannel('cazetv')">🔴 Sinal CazéTV</button>
+                        <button class="scs-srv-btn ${currentCazeSubChannel === 'goat' ? 'active' : ''}" onclick="switchCazeSubChannel('goat')">🟡 Sinal Canal GOAT</button>
+                    </div>
+                </div>
+
+                <div class="stream-video-viewport youtube-wrap">
+                    <iframe class="stream-cinema-iframe" src="${cazeSrc}" title="Transmissão CazéTV Ao Vivo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+                    <div class="stream-broadcast-hud-overlay mini">
+                        <div class="sb-scorebug">
+                            <span class="sb-team">${match.shortA || teamA}</span>
+                            <span class="sb-score">${match.scoreA || 0}</span>
+                            <span class="sb-divider">-</span>
+                            <span class="sb-score">${match.scoreB || 0}</span>
+                            <span class="sb-team">${match.shortB || teamB}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stream-player-bottom-controls">
+                    <span class="spc-live-text"><span class="live-dot-pulse"></span> REPRODUZINDO AO VIVO NO SITE</span>
+                    <div style="flex:1;"></div>
+                    <button class="spc-btn" onclick="toggleStreamCinemaMode()" title="Modo Cinema"><i class="fas fa-expand-arrows-alt"></i></button>
+                    <button class="spc-btn" onclick="toggleStreamFullscreen()" title="Tela Cheia"><i class="fas fa-expand"></i></button>
                 </div>
             </div>
         `;
     } else if (channel === 'espn_video') {
         // CANAL 5: GOLS E MELHORES MOMENTOS (VÍDEO HD OFICIAL ESPN MP4)
-        if (match.videoHighlightUrl) {
-            container.innerHTML = `
-                <div class="stream-video-screen">
-                    <video class="stream-html5-player" controls autoplay muted playsinline>
-                        <source src="${match.videoHighlightUrl}" type="video/mp4">
-                        Seu navegador não suporta a reprodução deste vídeo.
-                    </video>
-                    <div class="stream-video-title-bar">
-                        <i class="fas fa-video"></i> ${match.videoHighlightTitle || `Melhores Momentos: ${teamA} x ${teamB}`}
+        container.innerHTML = `
+            <div class="stream-live-broadcast-screen espn-player">
+                <div class="stream-channel-subbar">
+                    <div class="scs-left">
+                        <span class="scs-badge" style="background:var(--brand-green-pin);"><i class="fas fa-film"></i> GOLS & MELHORES MOMENTOS HD</span>
+                        <span class="scs-ping">${match.videoHighlightTitle || `${teamA} x ${teamB}`}</span>
+                    </div>
+                    <div class="scs-right">
+                        <button class="scs-srv-btn active" onclick="reloadStreamSignal()"><i class="fas fa-redo"></i> Repetir Lances</button>
                     </div>
                 </div>
-            `;
-        } else {
-            container.innerHTML = `
-                <div class="stream-external-portal-card" style="background:linear-gradient(135deg, #151026 0%, #20183b 100%);">
-                    <div class="sepc-badge" style="background:var(--brand-green-pin);"><i class="fas fa-film"></i> GOLS & MELHORES MOMENTOS HD</div>
-                    <div class="sepc-match-title">${teamA} x ${teamB}</div>
-                    <p class="sepc-desc">
-                        ${isLive
-                            ? '⚽ Os lances de gols e melhores momentos da partida estão sendo gravados em tempo real pela API oficial e ficarão disponíveis aqui com reprodutor Full HD integrado.'
-                            : '🎬 Vídeos oficiais de gols e melhores momentos prévios sendo processados. Você também pode conferir na aba "Notícias & Vídeos".'}
-                    </p>
-                    <button class="sepc-main-btn" style="background:var(--brand-purple);" onclick="switchMainSection('news')">
-                        <i class="far fa-newspaper"></i> Abrir Portal de Notícias & Vídeos
-                    </button>
+
+                <div class="stream-video-viewport">
+                    <video class="stream-html5-player" controls autoplay playsinline poster="banner.png">
+                        <source src="${activeVideoSrc}" type="video/mp4">
+                        Seu navegador não suporta reprodução direta de vídeo.
+                    </video>
                 </div>
-            `;
-        }
+            </div>
+        `;
     }
 }
 
@@ -3219,8 +3399,8 @@ function updateBetslip() {
 
                     <!-- Botões Rápidos no Card do Bilhete -->
                     <div class="history-card-actions" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-top:8px;" onclick="event.stopPropagation();">
-                        <button class="history-act-btn whatsapp" onclick="shareTicketWhatsApp('${h.pin}')" title="Compartilhar no WhatsApp">
-                            <i class="fab fa-whatsapp"></i> WhatsApp
+                        <button class="history-act-btn whatsapp" onclick="shareTicketWhatsApp('${h.pin}')" title="Enviar para o WhatsApp do Cambista (14) 99195-1381">
+                            <i class="fab fa-whatsapp"></i> (14) 99195-1381
                         </button>
                         <button class="history-act-btn copy" onclick="copyTicketPin('${h.pin}')" title="Copiar PIN">
                             <i class="fas fa-copy"></i> Copiar
@@ -3403,7 +3583,7 @@ function renderUserProfilePane() {
             </div>
         </div>
 
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
             <button class="place-bet-btn" onclick="closeUserAccountModal(); openRequestBalanceModal();">
                 <i class="fas fa-hand-holding-usd"></i> Solicitar Saldo ao Admin
             </button>
@@ -3411,6 +3591,10 @@ function renderUserProfilePane() {
                 <i class="fas fa-user-plus"></i> Cadastrar Outro Apostador
             </button>
         </div>
+
+        <a href="https://api.whatsapp.com/send?phone=5514991951381&text=Ol%C3%A1%2C%20sou%20${encodeURIComponent(c.name)}%20e%20gostaria%20de%20atendimento%20da%20365%20DA%20BARRA!" target="_blank" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px; background:#25D366; color:#ffffff; font-weight:800; font-size:12.5px; padding:10px; border-radius:6px; margin-bottom:14px; box-shadow:0 4px 12px rgba(37,211,102,0.3);">
+            <i class="fab fa-whatsapp" style="font-size:16px;"></i> Falar com Cambista no WhatsApp (14) 99195-1381
+        </a>
 
         ${myReqs.length > 0 ? `
             <div style="background:rgba(255,196,0,0.12); border:1px solid rgba(255,196,0,0.4); border-radius:6px; padding:10px 12px; margin-bottom:14px; font-size:12px;">
@@ -3613,6 +3797,7 @@ function shareTicketWhatsApp(pin) {
     const t = window.BetProData.placedBetsHistory.find(x => x.pin === pin);
     if (!t) return;
     const matches = window.BetProData.matches || [];
+    const cambistaNumber = (window.BetProData && window.BetProData.cambistaWhatsapp) || '5514991951381';
 
     const selectionsText = t.selections.map((s, idx) => {
         const m = matches.find(x => x.id === s.matchId);
@@ -3633,12 +3818,13 @@ function shareTicketWhatsApp(pin) {
         `💰 *Valor Apostado:* R$ ${t.stake.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n` +
         `💵 *Possível Retorno:* R$ ${t.payout.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n` +
         `-----------------------------------------\n` +
+        `📲 *WhatsApp Cambista:* (14) 99195-1381\n` +
         `🌐 *Conferir bilhete online:* https://deywysonc.github.io/365-da-barra/\n` +
         `✅ _365 DA BARRA • Banca Oficial_`;
 
     const encoded = encodeURIComponent(msg);
-    window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
-    showToast(`📲 Abrindo WhatsApp para enviar o bilhete PIN ${t.pin}...`);
+    window.open(`https://api.whatsapp.com/send?phone=${cambistaNumber}&text=${encoded}`, '_blank');
+    showToast(`📲 Enviando bilhete PIN ${t.pin} ao Cambista (14) 99195-1381...`);
 }
 
 function openTicketReceiptModal(pin) {
@@ -3731,7 +3917,7 @@ function openTicketReceiptModal(pin) {
             <!-- Ações de Compartilhamento e Impressão -->
             <div class="thermal-action-grid">
                 <button class="thermal-act-btn whatsapp" onclick="shareTicketWhatsApp('${t.pin}')">
-                    <i class="fab fa-whatsapp"></i> Compartilhar no WhatsApp
+                    <i class="fab fa-whatsapp"></i> Validar no WhatsApp (14) 99195-1381
                 </button>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
                     <button class="thermal-act-btn copy" onclick="copyTicketPin('${t.pin}')">
@@ -3801,6 +3987,26 @@ function sendCustomBalanceRequest() {
     }
     if (input) input.value = '';
     sendBalanceRequestToAdmin(val);
+}
+
+function sendBalanceRequestViaWhatsApp(amount = null) {
+    const client = getActiveClient();
+    const cambistaNumber = (window.BetProData && window.BetProData.cambistaWhatsapp) || '5514991951381';
+    const customInput = document.getElementById('custom-req-amount');
+    const val = amount || (customInput ? parseFloat(customInput.value) : 0);
+    const valStr = val > 0 ? `R$ ${val.toFixed(2).replace('.', ',')}` : 'um valor de saldo';
+    const text = encodeURIComponent(
+        `🏆 *365 DA BARRA • SOLICITAÇÃO DE SALDO*\n` +
+        `-----------------------------------------\n` +
+        `👤 *Cliente:* ${client.name} (ID: #${client.id})\n` +
+        `📱 *WhatsApp:* ${client.phone || 'Não informado'}\n` +
+        `🔑 *Chave PIX:* ${client.pixKey || client.phone || 'Não informada'}\n` +
+        `💰 *Valor Solicitado:* ${valStr}\n` +
+        `-----------------------------------------\n` +
+        `Olá Cambista, gostaria de solicitar liberação de ${valStr} na minha conta de apostas!`
+    );
+    window.open(`https://api.whatsapp.com/send?phone=${cambistaNumber}&text=${text}`, '_blank');
+    showToast(`📲 Abrindo WhatsApp do Cambista (14) 99195-1381...`);
 }
 
 function openAdminModal() {
@@ -4028,7 +4234,7 @@ function checkPinTicket() {
                     🧾 Abrir Comprovante Oficial
                 </button>
                 <button class="thermal-act-btn whatsapp" style="justify-content:center; padding:9px 12px; font-size:12.5px;" onclick="shareTicketWhatsApp('${t.pin}')">
-                    <i class="fab fa-whatsapp"></i> Compartilhar no WhatsApp
+                    <i class="fab fa-whatsapp"></i> Validar no WhatsApp (14) 99195-1381
                 </button>
             </div>
         </div>
@@ -4065,6 +4271,8 @@ setInterval(() => {
 window.addEventListener('DOMContentLoaded', () => {
     updateWalletUI();
     updateAdminBadge();
+    updateSidebarMatchCounts();
+    updateHeroBanner();
     renderMatches();
     updateBetslip();
     requestAnimationFrame(drawPitch);

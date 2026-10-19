@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@600;700&family=Roboto:wght@400;500;700;900&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link rel="stylesheet" href="css/styles.css?v=20261019_live3">
+    <link rel="stylesheet" href="css/styles.css?v=20261019_live4">
 </head>
 <body>
 
@@ -63,6 +63,11 @@
                 </button>
             </div>
 
+            <!-- Botão Direto WhatsApp Cambista Oficial -->
+            <a href="https://api.whatsapp.com/send?phone=5514991951381&text=Ol%C3%A1%2C%20vim%20pelo%20site%20365%20DA%20BARRA!" target="_blank" rel="noopener noreferrer" class="btn-whatsapp-header" title="Falar com o Cambista Oficial no WhatsApp (14) 99195-1381">
+                <i class="fab fa-whatsapp"></i> <span class="hide-xs">(14) 99195-1381</span>
+            </a>
+
             <!-- Botão Painel do Admin / Cambista -->
             <button class="btn-deposit" onclick="openAdminModal()">
                 <i class="fas fa-user-shield"></i> <span class="hide-xs">Admin</span> <span class="admin-badge-pill" id="admin-alert-count">0</span>
@@ -87,7 +92,7 @@
                 <img id="imgLogo" src="logo-365dabarra.png" alt="365 DA BARRA">
             </div>
 
-            <!-- Atalho Rápido de Conta / Cadastro na Sidebar -->
+            <!-- Atalho Rápido de Conta / Cadastro / WhatsApp Cambista na Sidebar -->
             <div class="sidebar-user-quickbar">
                 <button class="sb-quick-btn" onclick="openUserAccountModal('profile')">
                     <i class="fas fa-user-circle"></i> Minha Conta
@@ -95,6 +100,9 @@
                 <button class="sb-quick-btn gold" onclick="openUserAccountModal('register')">
                     <i class="fas fa-user-plus"></i> Criar Conta
                 </button>
+                <a href="https://api.whatsapp.com/send?phone=5514991951381&text=Ol%C3%A1%2C%20vim%20pelo%20site%20365%20DA%20BARRA!" target="_blank" rel="noopener noreferrer" class="sb-quick-btn wpp" title="Falar com o Cambista no WhatsApp (14) 99195-1381">
+                    <i class="fab fa-whatsapp"></i> (14) 99195-1381
+                </a>
             </div>
 
             <div class="menu">
@@ -393,11 +401,11 @@
                                 <!-- TELA DO REPRODUTOR DE TRANSMISSÃO -->
                                 <div class="stream-player-container" id="stream-player-container"></div>
 
-                                <!-- GUIA ONDE ASSISTIR NA TV & LINKS DIRETOS -->
+                                <!-- GUIA ONDE ASSISTIR NA TV & ATALHO WHATSAPP CAMBISTA -->
                                 <div class="stream-tv-guide">
                                     <div class="tv-guide-header">
                                         <i class="fas fa-tv" style="color:var(--brand-gold);"></i>
-                                        <span>Onde Assistir ao Vivo no Brasil:</span>
+                                        <span>Transmissão Oficial no Brasil:</span>
                                     </div>
                                     <div class="tv-guide-badges" id="stream-broadcast-badges">
                                         <span class="tv-badge">📺 SporTV</span>
@@ -406,15 +414,12 @@
                                         <span class="tv-badge">🟠 Disney+ / ESPN</span>
                                     </div>
                                     <div class="tv-direct-links">
-                                        <button class="direct-stream-link-btn multi" onclick="openMatchDirectStream('multicanais')">
-                                            <i class="fas fa-external-link-alt"></i> Multicanais Direto
+                                        <button class="direct-stream-link-btn reload" onclick="reloadStreamSignal()" title="Recarregar Sinal">
+                                            <i class="fas fa-sync-alt"></i> Recarregar
                                         </button>
-                                        <button class="direct-stream-link-btn fute" onclick="openMatchDirectStream('futemax')">
-                                            <i class="fas fa-external-link-alt"></i> Futemax Direto
-                                        </button>
-                                        <button class="direct-stream-link-btn caze" onclick="openMatchDirectStream('cazetv')">
-                                            <i class="fab fa-youtube"></i> CazéTV YouTube
-                                        </button>
+                                        <a href="https://api.whatsapp.com/send?phone=5514991951381&text=Ol%C3%A1%2C%20estou%20assistindo%20o%20jogo%20ao%20vivo%20na%20365%20DA%20BARRA%20e%20quero%20apostar!" target="_blank" rel="noopener noreferrer" class="direct-stream-link-btn wpp" title="Apostar no WhatsApp">
+                                            <i class="fab fa-whatsapp"></i> Apostar no WhatsApp: (14) 99195-1381
+                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -862,6 +867,11 @@
                     </button>
                 </div>
             </div>
+            <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border-color);">
+                <button class="place-bet-btn" style="background:#25D366; color:#ffffff; font-weight:800; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="sendBalanceRequestViaWhatsApp()">
+                    <i class="fab fa-whatsapp" style="font-size:16px;"></i> Pedir Saldo via WhatsApp (14) 99195-1381
+                </button>
+            </div>
         </div>
     </div>
 
@@ -939,9 +949,9 @@
 
     <div id="toast-container"></div>
 
-    <script src="js/data.js?v=20261019_live3"></script>
-    <script src="js/radar.js?v=20261019_live3"></script>
-    <script src="js/app.js?v=20261019_live3"></script>
+    <script src="js/data.js?v=20261019_live4"></script>
+    <script src="js/radar.js?v=20261019_live4"></script>
+    <script src="js/app.js?v=20261019_live4"></script>
     <script>
         window.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
@@ -949,6 +959,9 @@
                 setTimeout(() => {
                     openMatchCenter(401915401);
                     toggleLiveStreamView();
+                    if (params.get('ch')) {
+                        switchStreamChannel(params.get('ch'));
+                    }
                 }, 400);
             } else if (params.get('test') === 'receipt') {
                 setTimeout(() => {

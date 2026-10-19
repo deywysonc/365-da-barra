@@ -978,6 +978,10 @@ window.BetProData = {
         oneOptionPerMatch: true
     },
 
+    // Contato Oficial do Cambista / Admin 365 DA BARRA
+    cambistaWhatsapp: '5514991951381',
+    cambistaPhoneDisplay: '(14) 99195-1381',
+
     // Clientes Cadastrados
     activeClientId: (savedState && savedState.activeClientId) ? savedState.activeClientId : 1,
     clients: (savedState && Array.isArray(savedState.clients) && savedState.clients.length > 0)
