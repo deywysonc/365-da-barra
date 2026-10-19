@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@600;700&family=Roboto:wght@400;500;700;900&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link rel="stylesheet" href="css/styles.css?v=20261018m2">
+    <link rel="stylesheet" href="css/styles.css?v=20261019_live3">
 </head>
 <body>
 
@@ -323,7 +323,10 @@
                     <div id="mc-breadcrumb" style="font-size:12.5px; color:var(--text-muted); font-weight:700;">
                         Carregando partida real...
                     </div>
-                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                        <button class="tracker-ctrl-btn stream-tab-btn" id="btn-toggle-livestream" onclick="toggleLiveStreamView()">
+                            <i class="fas fa-play-circle" style="color:#ff3d57;"></i> <span>📺 Transmissão Ao Vivo</span> <span class="stream-live-pill">AO VIVO</span>
+                        </button>
                         <button class="tracker-ctrl-btn active" id="btn-toggle-3d" onclick="togglePerspectiveView()">🏟️ Estádio 3D</button>
                         <button class="tracker-ctrl-btn" id="btn-toggle-players" onclick="togglePlayersView()">👕 22 Jogadores</button>
                         <button class="tracker-ctrl-btn active" id="btn-toggle-trail" onclick="toggleTrailView()">⚡ Trajetória</button>
@@ -360,8 +363,62 @@
                     </div>
 
                     <div class="mc-arena-grid">
-                        <!-- Coluna do Campo 3D Vetorial HD -->
+                        <!-- Coluna do Campo 3D Vetorial HD & Transmissão Ao Vivo -->
                         <div class="mc-pitch-column">
+                            <!-- PALCO DE TRANSMISSÃO AO VIVO (MULTICANAIS, FUTEMAX, CAZÉTV, MP4 HD) -->
+                            <div class="livestream-stage" id="livestream-stage" style="display:none;">
+                                <div class="stream-channel-bar">
+                                    <div class="stream-channel-pills">
+                                        <button class="stream-ch-btn active" id="ch-btn-ch1" onclick="switchStreamChannel('ch1', this)">
+                                            <i class="fas fa-satellite-dish"></i> Canal 1 • Tático HD
+                                        </button>
+                                        <button class="stream-ch-btn" id="ch-btn-multicanais" onclick="switchStreamChannel('multicanais', this)">
+                                            <i class="fas fa-bolt" style="color:#ffc400;"></i> Multicanais
+                                        </button>
+                                        <button class="stream-ch-btn" id="ch-btn-futemax" onclick="switchStreamChannel('futemax', this)">
+                                            <i class="fas fa-play" style="color:#ff3d57;"></i> Futemax
+                                        </button>
+                                        <button class="stream-ch-btn" id="ch-btn-cazetv" onclick="switchStreamChannel('cazetv', this)">
+                                            <i class="fab fa-youtube" style="color:#ff0000;"></i> CazéTV / GOAT
+                                        </button>
+                                        <button class="stream-ch-btn" id="ch-btn-espn_video" onclick="switchStreamChannel('espn_video', this)">
+                                            <i class="fas fa-video" style="color:#34ca73;"></i> Gols & Lances HD
+                                        </button>
+                                    </div>
+                                    <div class="stream-signal-status">
+                                        <span class="live-dot-pulse"></span> <span id="stream-live-label">SINAL AO VIVO</span>
+                                    </div>
+                                </div>
+
+                                <!-- TELA DO REPRODUTOR DE TRANSMISSÃO -->
+                                <div class="stream-player-container" id="stream-player-container"></div>
+
+                                <!-- GUIA ONDE ASSISTIR NA TV & LINKS DIRETOS -->
+                                <div class="stream-tv-guide">
+                                    <div class="tv-guide-header">
+                                        <i class="fas fa-tv" style="color:var(--brand-gold);"></i>
+                                        <span>Onde Assistir ao Vivo no Brasil:</span>
+                                    </div>
+                                    <div class="tv-guide-badges" id="stream-broadcast-badges">
+                                        <span class="tv-badge">📺 SporTV</span>
+                                        <span class="tv-badge">⭐ Premiere</span>
+                                        <span class="tv-badge">🟡 CazéTV</span>
+                                        <span class="tv-badge">🟠 Disney+ / ESPN</span>
+                                    </div>
+                                    <div class="tv-direct-links">
+                                        <button class="direct-stream-link-btn multi" onclick="openMatchDirectStream('multicanais')">
+                                            <i class="fas fa-external-link-alt"></i> Multicanais Direto
+                                        </button>
+                                        <button class="direct-stream-link-btn fute" onclick="openMatchDirectStream('futemax')">
+                                            <i class="fas fa-external-link-alt"></i> Futemax Direto
+                                        </button>
+                                        <button class="direct-stream-link-btn caze" onclick="openMatchDirectStream('cazetv')">
+                                            <i class="fab fa-youtube"></i> CazéTV YouTube
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="stadium-stage" id="stadium-stage">
                                 <div class="pitch-broadcast-hud" id="pitch-hud-box">
                                     <div class="hud-status-badge" id="hud-zone-badge">🔥 ATAQUE PERIGOSO</div>
@@ -882,8 +939,23 @@
 
     <div id="toast-container"></div>
 
-    <script src="js/data.js?v=20261018m2"></script>
-    <script src="js/radar.js?v=20261018m2"></script>
-    <script src="js/app.js?v=20261018m2"></script>
+    <script src="js/data.js?v=20261019_live3"></script>
+    <script src="js/radar.js?v=20261019_live3"></script>
+    <script src="js/app.js?v=20261019_live3"></script>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('test') === 'stream') {
+                setTimeout(() => {
+                    openMatchCenter(401915401);
+                    toggleLiveStreamView();
+                }, 400);
+            } else if (params.get('test') === 'receipt') {
+                setTimeout(() => {
+                    openTicketReceiptModal('729-304');
+                }, 400);
+            }
+        });
+    </script>
 </body>
 </html>

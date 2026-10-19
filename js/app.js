@@ -680,7 +680,17 @@ async function fetchMatchSummaryFromApi(match, showNotification = false) {
 
         match.hasDetailedSummary = true;
 
-        // 1. Informações de Estádio / Cidade / Árbitro (gameInfo)
+        // Extrai vídeo de melhores momentos oficial da ESPN se disponível
+        if (Array.isArray(data.videos) && data.videos.length > 0) {
+            const v = data.videos[0];
+            const sourceHd = v.links && v.links.source && (v.links.source.HD ? v.links.source.HD.href : v.links.source.href);
+            if (sourceHd) {
+                match.videoHighlightUrl = sourceHd;
+                match.videoHighlightTitle = v.headline || 'Melhores Momentos e Lances da Partida';
+            }
+        }
+
+        // 1. Informações de Estádio / Cidade / Árbitro / Transmissões de TV (gameInfo)
         if (data.gameInfo) {
             if (data.gameInfo.venue && data.gameInfo.venue.fullName) {
                 const city = (data.gameInfo.venue.address && data.gameInfo.venue.address.city) ? `, ${data.gameInfo.venue.address.city}` : '';
@@ -689,6 +699,12 @@ async function fetchMatchSummaryFromApi(match, showNotification = false) {
             }
             if (data.gameInfo.officials && data.gameInfo.officials[0] && data.gameInfo.officials[0].displayName) {
                 match.referee = data.gameInfo.officials[0].displayName;
+            }
+            if (Array.isArray(data.gameInfo.broadcasts) && data.gameInfo.broadcasts.length > 0) {
+                const bNames = data.gameInfo.broadcasts.map(b => b.names ? b.names.join('/') : (b.name || '')).filter(Boolean);
+                if (bNames.length > 0) {
+                    match.broadcastChannels = Array.from(new Set([...(match.broadcastChannels || []), ...bNames]));
+                }
             }
         }
 
@@ -1125,6 +1141,9 @@ function openMatchCenter(matchId) {
     const m = window.BetProData.matches.find(x => x.id === Number(matchId));
     if (m) {
         fetchMatchSummaryFromApi(m);
+        if (window.BetProData.liveStreamActive) {
+            updateLiveStreamDisplay(m);
+        }
     }
 
     updateScoreboardHeader();
@@ -1137,6 +1156,238 @@ function openMatchCenter(matchId) {
 
 function backToMatchList() {
     switchMainSection('matches');
+}
+
+// =====================================================
+// TRANSMISSÃO AO VIVO (MULTICANAIS, FUTEMAX, CAZÉTV, TÁTICO HD)
+// =====================================================
+function toggleLiveStreamView() {
+    window.BetProData.liveStreamActive = !window.BetProData.liveStreamActive;
+    const streamStage = document.getElementById('livestream-stage');
+    const stadiumStage = document.getElementById('stadium-stage');
+    const toggleBtn = document.getElementById('btn-toggle-livestream');
+
+    if (streamStage && stadiumStage) {
+        if (window.BetProData.liveStreamActive) {
+            streamStage.style.display = 'flex';
+            stadiumStage.style.display = 'none';
+            if (toggleBtn) toggleBtn.classList.add('active');
+            const m = window.BetProData.matches.find(x => x.id === window.BetProData.selectedMatchId);
+            if (m) updateLiveStreamDisplay(m);
+        } else {
+            streamStage.style.display = 'none';
+            stadiumStage.style.display = 'block';
+            if (toggleBtn) toggleBtn.classList.remove('active');
+        }
+    }
+}
+
+function switchStreamChannel(channelId, btnEl = null) {
+    window.BetProData.activeStreamChannel = channelId;
+    const pillsContainer = document.querySelector('.stream-channel-pills');
+    if (pillsContainer) {
+        pillsContainer.querySelectorAll('.stream-ch-btn').forEach(b => b.classList.remove('active'));
+    }
+    const targetBtn = btnEl || document.getElementById(`ch-btn-${channelId}`);
+    if (targetBtn) targetBtn.classList.add('active');
+
+    const m = window.BetProData.matches.find(x => x.id === window.BetProData.selectedMatchId);
+    if (m) updateLiveStreamDisplay(m);
+}
+
+function openMatchDirectStream(platform) {
+    const m = window.BetProData.matches.find(x => x.id === window.BetProData.selectedMatchId);
+    const teamA = m ? m.teamA : 'Futebol';
+    const teamB = m ? m.teamB : 'Ao Vivo';
+    const query = encodeURIComponent(`${teamA} ${teamB}`);
+
+    let url = '';
+    if (platform === 'multicanais') {
+        url = `https://multicanais.cx/?s=${query}`;
+    } else if (platform === 'futemax') {
+        url = `https://futemax.app/?s=${query}`;
+    } else if (platform === 'cazetv') {
+        url = `https://www.youtube.com/@CazeTV/streams`;
+    } else if (platform === 'goat') {
+        url = `https://www.youtube.com/@canalgoatbr/streams`;
+    }
+
+    if (url) {
+        window.open(url, '_blank', 'noopener,noreferrer');
+        showToast(`📺 Abrindo sinal ao vivo de ${teamA} x ${teamB} no ${platform.toUpperCase()}...`);
+    }
+}
+
+function updateLiveStreamDisplay(match) {
+    if (!match) return;
+    const container = document.getElementById('stream-player-container');
+    if (!container) return;
+
+    const channel = window.BetProData.activeStreamChannel || 'ch1';
+    const broadcastBadgesContainer = document.getElementById('stream-broadcast-badges');
+
+    // Atualiza canais oficiais de TV
+    if (broadcastBadgesContainer) {
+        const defaultChannels = match.broadcastChannels && match.broadcastChannels.length > 0
+            ? match.broadcastChannels
+            : ['SporTV', 'Premiere', 'CazéTV', 'Disney+ / ESPN'];
+        broadcastBadgesContainer.innerHTML = defaultChannels.map(ch => `
+            <span class="tv-badge">📺 ${ch}</span>
+        `).join('');
+    }
+
+    const teamA = match.teamA;
+    const teamB = match.teamB;
+    const logoA = match.logoA || 'https://a.espncdn.com/i/teamlogos/soccer/500/819.png';
+    const logoB = match.logoB || 'https://a.espncdn.com/i/teamlogos/soccer/500/2029.png';
+    const scoreStr = `${match.scoreA || 0} - ${match.scoreB || 0}`;
+    const clockStr = match.displayClock || (match.isLive ? `${match.minute || 0}'` : (match.kickoffTimeStr || 'Hoje'));
+    const isLive = match.isLive;
+
+    if (channel === 'ch1') {
+        // CANAL 1: TRANSMISSÃO TÁTICA HD E BROADCAST HUD
+        container.innerHTML = `
+            <div class="stream-tactical-screen">
+                <div class="stream-overlay-header">
+                    <div class="soh-team">
+                        <img src="${logoA}" alt="${teamA}" class="soh-logo">
+                        <span class="soh-name">${match.shortA || teamA}</span>
+                    </div>
+                    <div class="soh-score-box">
+                        <span class="soh-score">${scoreStr}</span>
+                        <span class="soh-clock ${isLive ? 'live' : ''}">${isLive ? '🔴 ' : ''}${clockStr}</span>
+                    </div>
+                    <div class="soh-team">
+                        <span class="soh-name">${match.shortB || teamB}</span>
+                        <img src="${logoB}" alt="${teamB}" class="soh-logo">
+                    </div>
+                </div>
+
+                <div class="stream-tactical-body">
+                    <div class="stream-animated-broadcast">
+                        <div class="stream-radar-pitch-bg">
+                            <div class="stream-pitch-fieldlines"></div>
+                            <div class="stream-live-event-banner">
+                                <span class="sleb-zone">${match.state ? (match.state.actionText || '⚡ EM JOGO') : 'AO VIVO'}</span>
+                                <span class="sleb-sub">${match.state ? (match.state.subText || 'Partida transmitida em tempo real') : ''}</span>
+                                ${match.state && match.state.activePlayer ? `<span class="sleb-player">👟 ${match.state.activePlayer}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stream-tactical-footer">
+                    <div class="stf-stats-pill">
+                        <span>Posse de Bola: <strong>${(match.state && match.state.stats && match.state.stats.possession) ? match.state.stats.possession[0] : 50}%</strong> vs <strong>${(match.state && match.state.stats && match.state.stats.possession) ? match.state.stats.possession[1] : 50}%</strong></span>
+                    </div>
+                    <div class="stf-controls">
+                        <span class="stream-quality-tag"><i class="fas fa-check-circle"></i> 1080p 60fps</span>
+                        <button class="stf-btn" onclick="togglePerspectiveView()" title="Alternar visão 3D"><i class="fas fa-cube"></i></button>
+                        <button class="stf-btn" onclick="toggleSoundEffects()" title="Áudio da Partida"><i class="fas fa-volume-up"></i></button>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (channel === 'multicanais') {
+        // CANAL 2: MULTICANAIS AO VIVO
+        container.innerHTML = `
+            <div class="stream-external-portal-card multicanais-theme">
+                <div class="sepc-badge"><i class="fas fa-bolt"></i> SINAL MULTICANAIS HD</div>
+                <div class="sepc-match-title">${teamA} <span style="color:var(--brand-gold);">vs</span> ${teamB}</div>
+                <div class="sepc-status">${isLive ? '🔴 Transmissão Ao Vivo em Andamento' : '⏳ Transmissão Pré-Jogo Disponível'}</div>
+                <p class="sepc-desc">
+                    O <strong>Multicanais</strong> disponibiliza múltiplos players e servidores de alta velocidade para assistir aos jogos do Brasileirão, Libertadores e Ligas Europeias.
+                </p>
+                <div class="sepc-actions">
+                    <button class="sepc-main-btn multi" onclick="openMatchDirectStream('multicanais')">
+                        <i class="fas fa-play"></i> Assistir no Multicanais (Abrir Player HD)
+                    </button>
+                </div>
+                <div class="sepc-server-pills">
+                    <button class="sepc-server-pill active" onclick="openMatchDirectStream('multicanais')">Servidor 1 (Full HD)</button>
+                    <button class="sepc-server-pill" onclick="openMatchDirectStream('multicanais')">Servidor 2 (Mobile 720p)</button>
+                    <button class="sepc-server-pill" onclick="openMatchDirectStream('multicanais')">Servidor 3 (Rádio e Narração)</button>
+                </div>
+                <div class="sepc-footer-note">
+                    <i class="fas fa-shield-alt"></i> Abre em nova aba segura e otimizada contra bloqueios de navegadores.
+                </div>
+            </div>
+        `;
+    } else if (channel === 'futemax') {
+        // CANAL 3: FUTEMAX AO VIVO
+        container.innerHTML = `
+            <div class="stream-external-portal-card futemax-theme">
+                <div class="sepc-badge" style="background:#ff3d57;"><i class="fas fa-satellite-dish"></i> SINAL FUTEMAX AO VIVO</div>
+                <div class="sepc-match-title">${teamA} <span style="color:#ff3d57;">x</span> ${teamB}</div>
+                <div class="sepc-status">${isLive ? '🔴 Sinal Direto Conectado' : '⏳ Aguardando Início da Transmissão'}</div>
+                <p class="sepc-desc">
+                    Acesso direto ao sinal do <strong>Futemax</strong> para a partida <strong>${teamA} x ${teamB}</strong> com transmissão ao vivo e narração em português.
+                </p>
+                <div class="sepc-actions">
+                    <button class="sepc-main-btn fute" onclick="openMatchDirectStream('futemax')">
+                        <i class="fas fa-play-circle"></i> Assistir no Futemax Ao Vivo
+                    </button>
+                </div>
+                <div class="sepc-server-pills">
+                    <button class="sepc-server-pill active" onclick="openMatchDirectStream('futemax')">Opção 1 (Sinal Oficial)</button>
+                    <button class="sepc-server-pill" onclick="openMatchDirectStream('futemax')">Opção 2 (Reserva)</button>
+                </div>
+                <div class="sepc-footer-note">
+                    <i class="fas fa-info-circle"></i> Transmissão com delay mínimo de ~2.4 segundos.
+                </div>
+            </div>
+        `;
+    } else if (channel === 'cazetv') {
+        // CANAL 4: CAZÉTV / YOUTUBE ABERTO
+        container.innerHTML = `
+            <div class="stream-external-portal-card caze-theme">
+                <div class="sepc-badge" style="background:#ff0000;"><i class="fab fa-youtube"></i> CAZÉTV & CANAL GOAT</div>
+                <div class="sepc-match-title">${teamA} x ${teamB}</div>
+                <div class="sepc-status">📺 Transmissão Gratuita e Oficial no YouTube</div>
+                <p class="sepc-desc">
+                    Assista às transmissões abertas oficiais da <strong>CazéTV</strong> e do <strong>Canal GOAT</strong> com imagens em 1080p 60fps oficiais no YouTube.
+                </p>
+                <div class="sepc-actions" style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+                    <button class="sepc-main-btn caze" onclick="openMatchDirectStream('cazetv')">
+                        <i class="fab fa-youtube"></i> Abrir CazéTV Ao Vivo
+                    </button>
+                    <button class="sepc-main-btn goat" style="background:#fbc02d; color:#111;" onclick="openMatchDirectStream('goat')">
+                        <i class="fas fa-play"></i> Abrir Canal GOAT
+                    </button>
+                </div>
+            </div>
+        `;
+    } else if (channel === 'espn_video') {
+        // CANAL 5: GOLS E MELHORES MOMENTOS (VÍDEO HD OFICIAL ESPN MP4)
+        if (match.videoHighlightUrl) {
+            container.innerHTML = `
+                <div class="stream-video-screen">
+                    <video class="stream-html5-player" controls autoplay muted playsinline>
+                        <source src="${match.videoHighlightUrl}" type="video/mp4">
+                        Seu navegador não suporta a reprodução deste vídeo.
+                    </video>
+                    <div class="stream-video-title-bar">
+                        <i class="fas fa-video"></i> ${match.videoHighlightTitle || `Melhores Momentos: ${teamA} x ${teamB}`}
+                    </div>
+                </div>
+            `;
+        } else {
+            container.innerHTML = `
+                <div class="stream-external-portal-card" style="background:linear-gradient(135deg, #151026 0%, #20183b 100%);">
+                    <div class="sepc-badge" style="background:var(--brand-green-pin);"><i class="fas fa-film"></i> GOLS & MELHORES MOMENTOS HD</div>
+                    <div class="sepc-match-title">${teamA} x ${teamB}</div>
+                    <p class="sepc-desc">
+                        ${isLive
+                            ? '⚽ Os lances de gols e melhores momentos da partida estão sendo gravados em tempo real pela API oficial e ficarão disponíveis aqui com reprodutor Full HD integrado.'
+                            : '🎬 Vídeos oficiais de gols e melhores momentos prévios sendo processados. Você também pode conferir na aba "Notícias & Vídeos".'}
+                    </p>
+                    <button class="sepc-main-btn" style="background:var(--brand-purple);" onclick="switchMainSection('news')">
+                        <i class="far fa-newspaper"></i> Abrir Portal de Notícias & Vídeos
+                    </button>
+                </div>
+            `;
+        }
+    }
 }
 
 function filterNewsByLeague(slug, pillEl = null) {
@@ -2932,20 +3183,56 @@ function updateBetslip() {
             </div>
         ` : '';
 
-        itemsContainer.innerHTML = pinBannerHtml + placedBetsHistory.map((h) => `
-            <div class="betslip-item" onclick="openTicketReceiptModal('${h.pin}')" style="cursor:pointer;">
-                <div class="card-header" style="background:${h.status === 'VALIDADO' ? 'var(--brand-green-dark)' : 'var(--brand-purple)'};">
-                    <span class="outcomeSelected">PIN: ${h.pin} • ${h.status}</span>
-                    <span class="removeBetslipItem" title="Ver Recibo"><i class="fas fa-receipt"></i></span>
+        itemsContainer.innerHTML = pinBannerHtml + `
+            <div class="betslip-history-subbar" style="display:flex; justify-content:space-between; align-items:center; padding:6px 10px; margin-bottom:8px; font-size:11px; color:var(--text-muted); background:var(--bg-elevated); border-radius:5px;">
+                <span>Total de Bilhetes: <strong>${placedBetsHistory.length}</strong></span>
+                <span style="color:var(--brand-gold);"><i class="fas fa-info-circle"></i> Toque no bilhete para abrir</span>
+            </div>
+        ` + placedBetsHistory.map((h) => {
+            const isValidated = h.status === 'VALIDADO';
+            return `
+            <div class="betslip-item betslip-history-card" onclick="openTicketReceiptModal('${h.pin}')" style="cursor:pointer; border-left:4px solid ${isValidated ? 'var(--brand-green-pin)' : 'var(--brand-gold)'}; margin-bottom:10px;">
+                <div class="card-header" style="background:${isValidated ? '#1d5e38' : '#3b2a6f'}; display:flex; justify-content:space-between; align-items:center;">
+                    <span class="outcomeSelected" style="font-weight:900; letter-spacing:0.5px;">
+                        PIN: <span style="color:var(--brand-gold);">${h.pin}</span>
+                    </span>
+                    <span style="font-size:10px; font-weight:800; padding:2px 7px; border-radius:10px; background:${isValidated ? 'rgba(52,202,115,0.25)' : 'rgba(255,196,0,0.25)'}; color:${isValidated ? '#70ffaa' : '#ffd600'};">
+                        ${isValidated ? '✓ VALIDADO' : '⏳ PENDENTE'}
+                    </span>
                 </div>
-                <div class="body">
-                    <span class="item"><strong>Cliente: ${h.clientName}</strong> (${h.createdAt})</span>
-                    <span class="item">${h.selections.map(s => s.selection).join(' + ')}</span>
-                    <span class="item">Apostado: <strong>R$ ${h.stake.toFixed(2).replace('.', ',')}</strong> • Odd: <strong>${formatOddComma(h.totalOdd)}</strong></span>
-                    <span class="item itemHightlight">Retorno: <strong>R$ ${h.payout.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></span>
+                <div class="body" style="padding:10px;">
+                    <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:4px;">
+                        <span>👤 <strong>${h.clientName}</strong></span>
+                        <span style="color:var(--text-muted);">${h.createdAt}</span>
+                    </div>
+                    <div style="font-size:11.5px; color:var(--text-secondary); margin-bottom:6px; line-height:1.4;">
+                        ${h.selections.map(s => `• <strong>${s.selection}</strong> (${formatOddComma(s.oddValue)})`).join('<br>')}
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:11.5px; padding-top:6px; border-top:1px dashed var(--border-color); margin-bottom:6px;">
+                        <span>Apostado: <strong>R$ ${h.stake.toFixed(2).replace('.', ',')}</strong></span>
+                        <span>Odd: <strong style="color:var(--brand-gold);">${formatOddComma(h.totalOdd)}</strong></span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px;">
+                        <span style="color:var(--text-muted);">Retorno:</span>
+                        <strong style="color:var(--brand-green-pin); font-size:13.5px; font-family:'JetBrains Mono',monospace;">R$ ${h.payout.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                    </div>
+
+                    <!-- Botões Rápidos no Card do Bilhete -->
+                    <div class="history-card-actions" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-top:8px;" onclick="event.stopPropagation();">
+                        <button class="history-act-btn whatsapp" onclick="shareTicketWhatsApp('${h.pin}')" title="Compartilhar no WhatsApp">
+                            <i class="fab fa-whatsapp"></i> WhatsApp
+                        </button>
+                        <button class="history-act-btn copy" onclick="copyTicketPin('${h.pin}')" title="Copiar PIN">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                        <button class="history-act-btn receipt" onclick="openTicketReceiptModal('${h.pin}')" title="Ver Comprovante">
+                            <i class="fas fa-receipt"></i> Recibo
+                        </button>
+                    </div>
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
         return;
     }
 
@@ -3322,6 +3609,38 @@ function placeBet(asPreTicketPinOnly = false) {
     }
 }
 
+function shareTicketWhatsApp(pin) {
+    const t = window.BetProData.placedBetsHistory.find(x => x.pin === pin);
+    if (!t) return;
+    const matches = window.BetProData.matches || [];
+
+    const selectionsText = t.selections.map((s, idx) => {
+        const m = matches.find(x => x.id === s.matchId);
+        const gameStr = m ? `${m.teamA} x ${m.teamB}` : 'Futebol';
+        return `${idx + 1}. *${s.selection}* (Odd ${formatOddComma(s.oddValue)})\n   _${s.marketName}_ • ${gameStr}`;
+    }).join('\n\n');
+
+    const msg = `🏆 *365 DA BARRA • COMPROVANTE OFICIAL*\n` +
+        `-----------------------------------------\n` +
+        `📌 *CÓDIGO PIN:* ${t.pin}\n` +
+        `👤 *Apostador:* ${t.clientName}\n` +
+        `📅 *Data/Hora:* ${t.createdAt}\n` +
+        `📋 *Status:* ${t.status}\n` +
+        `-----------------------------------------\n` +
+        `⚽ *SELEÇÕES (${t.selections.length}):*\n\n${selectionsText}\n\n` +
+        `-----------------------------------------\n` +
+        `📊 *Cotação Total:* ${formatOddComma(t.totalOdd)}\n` +
+        `💰 *Valor Apostado:* R$ ${t.stake.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n` +
+        `💵 *Possível Retorno:* R$ ${t.payout.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n` +
+        `-----------------------------------------\n` +
+        `🌐 *Conferir bilhete online:* https://deywysonc.github.io/365-da-barra/\n` +
+        `✅ _365 DA BARRA • Banca Oficial_`;
+
+    const encoded = encodeURIComponent(msg);
+    window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
+    showToast(`📲 Abrindo WhatsApp para enviar o bilhete PIN ${t.pin}...`);
+}
+
 function openTicketReceiptModal(pin) {
     closeMobilePanels();
     const modal = document.getElementById('ticket-receipt-modal');
@@ -3334,57 +3653,95 @@ function openTicketReceiptModal(pin) {
     const isValidated = t.status === 'VALIDADO';
     const matches = window.BetProData.matches || [];
 
-    const selectionsHtml = t.selections.map(s => {
+    const selectionsHtml = t.selections.map((s, idx) => {
         const m = matches.find(x => x.id === s.matchId);
         return `
-            <div style="padding:8px 10px; background:var(--bg-dark); border:1px solid var(--border-color); border-radius:7px; margin-bottom:6px; font-size:12px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; font-weight:800; color:var(--text-main);">
-                    <span>🎯 ${s.selection}</span>
-                    <span style="color:var(--accent-yellow); font-family:'JetBrains Mono',monospace;">${formatOddComma(s.oddValue)}</span>
+            <div class="thermal-selection-item">
+                <div class="tsi-row-top">
+                    <span class="tsi-index">${idx + 1}.</span>
+                    <strong class="tsi-pick">${s.selection}</strong>
+                    <span class="tsi-odd">@ ${formatOddComma(s.oddValue)}</span>
                 </div>
-                <div style="font-size:11px; color:var(--text-muted); margin-top:3px;">
-                    ${s.marketName} ${m ? `• ${m.teamA} x ${m.teamB}` : ''}
+                <div class="tsi-row-sub">
+                    <span>${s.marketName}</span>
+                    <span>${m ? `${m.teamA} x ${m.teamB}` : 'Futebol'}</span>
                 </div>
             </div>
         `;
     }).join('');
 
     body.innerHTML = `
-        <div style="text-align:center; margin-bottom:8px;">
-            <span style="display:inline-block; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:900; background:${isValidated ? 'rgba(52,202,115,0.18)' : 'rgba(255,196,0,0.18)'}; color:${isValidated ? 'var(--accent-green)' : 'var(--accent-yellow)'}; border:1px solid ${isValidated ? 'rgba(52,202,115,0.45)' : 'rgba(255,196,0,0.45)'};">
-                ${isValidated ? '✅ BILHETE OFICIAL VALIDADO' : '⏳ PRÉ-BILHETE • AGUARDANDO VALIDAÇÃO DO CAMBISTA'}
-            </span>
-        </div>
-
-        <div class="receipt-pin-box">
-            <div style="font-size:10.5px; color:rgba(255,255,255,0.9); text-transform:uppercase; font-weight:800; margin-bottom:4px;">Código PIN do Bilhete</div>
-            <div class="receipt-pin-code">${t.pin}</div>
-            <div style="font-size:11px; color:#ffffff; margin-top:4px;">Apostador: <strong>${t.clientName}</strong> • Emitido às ${t.createdAt}</div>
-        </div>
-
-        <div style="margin:12px 0; max-height:210px; overflow-y:auto;">
-            <div style="font-size:11px; font-weight:800; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px;">Seleções do Bilhete (${t.selections.length})</div>
-            ${selectionsHtml}
-        </div>
-
-        <div style="background:var(--bg-elevated); border:1px solid var(--border-color); border-radius:8px; padding:10px 12px; font-size:12.5px; margin-bottom:14px;">
-            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                <span style="color:var(--text-muted);">Cotação Total:</span>
-                <strong style="font-family:'JetBrains Mono',monospace; color:var(--accent-yellow);">${formatOddComma(t.totalOdd)}</strong>
+        <div class="thermal-receipt-card ${isValidated ? 'validated' : 'pending'}">
+            <!-- Cabeçalho do Recibo Térmico -->
+            <div class="thermal-header">
+                <img src="logo-365dabarra.png" alt="365 DA BARRA" class="thermal-logo">
+                <div class="thermal-brand-title">365 DA BARRA • ESPORTES</div>
+                <div class="thermal-sub-meta">Banca Oficial • Comprovante de Aposta</div>
+                <div class="thermal-date-row">
+                    <span>Emissão: <strong>${t.createdAt}</strong></span>
+                    <span>Cliente: <strong>${t.clientName}</strong></span>
+                </div>
             </div>
-            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                <span style="color:var(--text-muted);">Valor Apostado:</span>
-                <strong style="font-family:'JetBrains Mono',monospace;">R$ ${t.stake.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
-            </div>
-            <div style="display:flex; justify-content:space-between; padding-top:6px; border-top:1px solid var(--border-color);">
-                <span style="font-weight:800; color:var(--text-main);">Possível Retorno:</span>
-                <strong style="font-family:'JetBrains Mono',monospace; font-size:15px; color:var(--accent-green);">R$ ${t.payout.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
-            </div>
-        </div>
 
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-            <button class="btn-deposit" style="justify-content:center;" onclick="copyTicketPin('${t.pin}')">📋 Copiar Código PIN</button>
-            <button class="btn-secondary" style="justify-content:center;" onclick="window.print()">🖨️ Imprimir Recibo</button>
+            <!-- Faixa do Status do Bilhete -->
+            <div class="thermal-status-ribbon ${isValidated ? 'validated' : 'pending'}">
+                ${isValidated ? '✅ BILHETE OFICIAL VALIDADO' : '⏳ PRÉ-BILHETE (AGUARDANDO VALIDAÇÃO ADMIN)'}
+            </div>
+
+            <!-- Caixa de Destaque do Código PIN -->
+            <div class="thermal-pin-box">
+                <div class="thermal-pin-label">CÓDIGO PIN DO BILHETE</div>
+                <div class="thermal-pin-number">${t.pin}</div>
+                <div class="thermal-pin-sub">Apresente este código ao Cambista ou consulte no site</div>
+            </div>
+
+            <!-- Código de Barras Digital -->
+            <div class="thermal-barcode-box">
+                <div class="thermal-barcode-lines"></div>
+                <div class="thermal-barcode-digits">* ${t.pin.replace('-', ' ')} *</div>
+            </div>
+
+            <!-- Lista de Palpites Selecionados -->
+            <div class="thermal-selections-list">
+                <div class="thermal-sec-title">PALPITES SELECIONADOS (${t.selections.length})</div>
+                ${selectionsHtml}
+            </div>
+
+            <!-- Resumo Financeiro do Cupom -->
+            <div class="thermal-totals-box">
+                <div class="thermal-tot-row">
+                    <span>Cotação Total:</span>
+                    <strong style="color:var(--brand-gold);">${formatOddComma(t.totalOdd)}</strong>
+                </div>
+                <div class="thermal-tot-row">
+                    <span>Valor Apostado:</span>
+                    <strong>R$ ${t.stake.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                </div>
+                <div class="thermal-tot-row highlight">
+                    <span>Possível Retorno:</span>
+                    <strong class="thermal-payout">R$ ${t.payout.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                </div>
+            </div>
+
+            <div class="thermal-rules-footer">
+                <span>⚠️ Prêmio máximo: R$ 30.000,00 por bilhete.</span><br>
+                <span>Válido conforme as regras oficiais da banca 365 DA BARRA.</span>
+            </div>
+
+            <!-- Ações de Compartilhamento e Impressão -->
+            <div class="thermal-action-grid">
+                <button class="thermal-act-btn whatsapp" onclick="shareTicketWhatsApp('${t.pin}')">
+                    <i class="fab fa-whatsapp"></i> Compartilhar no WhatsApp
+                </button>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                    <button class="thermal-act-btn copy" onclick="copyTicketPin('${t.pin}')">
+                        <i class="fas fa-copy"></i> Copiar PIN
+                    </button>
+                    <button class="thermal-act-btn print" onclick="window.print()">
+                        <i class="fas fa-print"></i> Imprimir
+                    </button>
+                </div>
+            </div>
         </div>
     `;
 
@@ -3637,21 +3994,43 @@ function checkPinTicket() {
     const pinInput = document.getElementById('check-pin-input');
     const resultBox = document.getElementById('check-pin-result');
     const pin = (pinInput.value || '').trim();
-    const t = window.BetProData.placedBetsHistory.find(x => x.pin === pin);
-    if (!t) {
-        resultBox.innerHTML = `<div style="padding:12px; background:rgba(201,48,44,0.18); border:1px solid var(--brand-red-selected); border-radius:6px; font-size:12.5px;">❌ Nenhum bilhete encontrado com o código PIN <strong>${pin}</strong>.</div>`;
+    if (!pin) {
+        resultBox.innerHTML = `<div style="padding:12px; background:rgba(255,196,0,0.15); border:1px solid var(--brand-gold); border-radius:6px; font-size:12.5px; color:#ffffff;">⚠️ Digite o código PIN do bilhete para consultar.</div>`;
         return;
     }
+    const t = window.BetProData.placedBetsHistory.find(x => x.pin === pin);
+    if (!t) {
+        resultBox.innerHTML = `<div style="padding:12px; background:rgba(201,48,44,0.18); border:1px solid var(--brand-red-selected); border-radius:6px; font-size:12.5px; color:#ffffff;">❌ Nenhum bilhete encontrado com o código PIN <strong>${pin}</strong>. Verifique o código e tente novamente.</div>`;
+        return;
+    }
+
+    const isValidated = t.status === 'VALIDADO';
     resultBox.innerHTML = `
-        <div style="padding:14px; background:var(--bg-dark); border:1px solid var(--brand-green-pin); border-radius:8px; font-size:13px;">
-            <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-                <strong>Bilhete PIN: ${t.pin}</strong>
-                <span style="color:var(--brand-green-pin); font-weight:800;">${t.status}</span>
+        <div style="padding:16px; background:var(--bg-dark); border:2px solid ${isValidated ? 'var(--brand-green-pin)' : 'var(--brand-gold)'}; border-radius:10px; font-size:13px; color:#ffffff; box-shadow:0 6px 20px rgba(0,0,0,0.35);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+                <span style="font-size:15px; font-weight:900;">📌 Bilhete PIN: <span style="color:var(--brand-gold);">${t.pin}</span></span>
+                <span style="padding:4px 10px; border-radius:12px; font-size:11px; font-weight:900; background:${isValidated ? 'rgba(52,202,115,0.22)' : 'rgba(255,196,0,0.22)'}; color:${isValidated ? '#70ffaa' : '#ffd600'};">
+                    ${isValidated ? '✓ VALIDADO' : '⏳ AGUARDANDO ADMIN'}
+                </span>
             </div>
-            <div>Cliente: <strong>${t.clientName}</strong></div>
-            <div>Seleções: ${t.selections.map(s => s.selection).join(' + ')}</div>
-            <div>Valor Apostado: R$ ${t.stake.toFixed(2).replace('.', ',')} • Cotação: ${formatOddComma(t.totalOdd)}</div>
-            <div style="color:var(--brand-green-pin); font-weight:900; margin-top:4px;">Possível Retorno: R$ ${t.payout.toFixed(2).replace('.', ',')}</div>
+            <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">
+                👤 Apostador: <strong>${t.clientName}</strong> • Emitido às ${t.createdAt}
+            </div>
+            <div style="font-size:12px; margin-bottom:10px; background:rgba(255,255,255,0.04); padding:10px; border-radius:6px; line-height:1.5;">
+                ${t.selections.map((s, i) => `<div>${i + 1}. <strong>${s.selection}</strong> (${formatOddComma(s.oddValue)}) <span style="color:var(--text-muted); font-size:11px;">• ${s.marketName}</span></div>`).join('')}
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:12.5px; margin-bottom:12px; padding-top:8px; border-top:1px dashed var(--border-color);">
+                <span>Valor: <strong>R$ ${t.stake.toFixed(2).replace('.', ',')}</strong> • Odd: <strong>${formatOddComma(t.totalOdd)}</strong></span>
+                <span>Possível Retorno: <strong style="color:var(--brand-green-pin); font-size:14.5px; font-family:'JetBrains Mono',monospace;">R$ ${t.payout.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></span>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <button class="btn-deposit" style="justify-content:center; padding:9px 12px; font-size:12.5px;" onclick="openTicketReceiptModal('${t.pin}')">
+                    🧾 Abrir Comprovante Oficial
+                </button>
+                <button class="thermal-act-btn whatsapp" style="justify-content:center; padding:9px 12px; font-size:12.5px;" onclick="shareTicketWhatsApp('${t.pin}')">
+                    <i class="fab fa-whatsapp"></i> Compartilhar no WhatsApp
+                </button>
+            </div>
         </div>
     `;
 }

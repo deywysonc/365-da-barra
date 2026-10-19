@@ -296,20 +296,34 @@ body {
 }
 
 .wallet-box {
-    background: rgba(0, 0, 0, 0.32);
+    background: rgba(0, 0, 0, 0.38);
     border: 1px solid rgba(52, 202, 115, 0.55);
-    padding: 3px 12px;
-    border-radius: 5px;
+    padding: 4px 10px;
+    border-radius: 6px;
     display: flex;
     align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    height: 38px;
+}
+
+.wallet-texts {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1.15;
+    white-space: nowrap;
 }
 
 .wallet-label {
     font-size: 9px;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.78);
+    color: rgba(255, 255, 255, 0.75);
     display: block;
     font-weight: 700;
+    letter-spacing: 0.3px;
+    margin-bottom: 2px;
 }
 
 .wallet-balance {
@@ -317,6 +331,8 @@ body {
     font-weight: 900;
     color: #34ca73;
     font-family: 'JetBrains Mono', monospace;
+    line-height: 1;
+    white-space: nowrap;
 }
 
 .btn-deposit {
@@ -2379,6 +2395,18 @@ body.theme-light .oddAndPossibleReturn .possibleReturn span strong {
     display: flex;
     align-items: center;
     gap: 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.wallet-texts {
+    display: flex;
+    flex-direction: column;
+    white-space: nowrap;
+}
+
+.wallet-balance {
+    white-space: nowrap;
 }
 
 .wallet-add-btn {
@@ -3608,6 +3636,973 @@ body.theme-light .oddAndPossibleReturn .possibleReturn span strong {
         padding: 8px !important;
     }
 }
+
+/* ==========================================================================
+   TRANSMISSÃO AO VIVO (MULTICANAIS, FUTEMAX, CAZÉTV, TÁTICO HD)
+   ========================================================================== */
+
+/* Botão de Transmissão Ao Vivo no Topo da Partida */
+.stream-tab-btn {
+    background: linear-gradient(135deg, rgba(255, 61, 87, 0.22) 0%, rgba(201, 48, 44, 0.25) 100%) !important;
+    border: 1px solid rgba(255, 61, 87, 0.6) !important;
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+.stream-tab-btn:hover {
+    background: linear-gradient(135deg, rgba(255, 61, 87, 0.45) 0%, rgba(201, 48, 44, 0.55) 100%) !important;
+    border-color: #ff3d57 !important;
+    box-shadow: 0 0 12px rgba(255, 61, 87, 0.45);
+}
+
+.stream-tab-btn.active {
+    background: linear-gradient(135deg, #ff3d57 0%, #C9302C 100%) !important;
+    border-color: #ffc400 !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 14px rgba(255, 61, 87, 0.6);
+}
+
+.stream-live-pill {
+    background: #ff3d57;
+    color: #ffffff;
+    font-size: 9px;
+    font-weight: 900;
+    padding: 1px 6px;
+    border-radius: 8px;
+    letter-spacing: 0.5px;
+    animation: livePulseGlow 1.6s infinite ease-in-out;
+}
+
+.stream-tab-btn.active .stream-live-pill {
+    background: #ffc400;
+    color: #151026;
+}
+
+@keyframes livePulseGlow {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.65; transform: scale(0.95); }
+}
+
+/* Palco da Transmissão (.livestream-stage) */
+.livestream-stage {
+    display: flex;
+    flex-direction: column;
+    background: #0d0a17;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+    margin-bottom: 12px;
+}
+
+.stream-channel-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #18122c;
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.stream-channel-pills {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    flex: 1;
+}
+
+.stream-channel-pills::-webkit-scrollbar {
+    display: none;
+}
+
+.stream-ch-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 11.5px;
+    font-weight: 800;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.18s ease;
+}
+
+.stream-ch-btn:hover {
+    background: rgba(255, 255, 255, 0.16);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+.stream-ch-btn.active {
+    background: var(--brand-purple);
+    border-color: var(--brand-gold);
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(255, 196, 0, 0.35);
+}
+
+.stream-signal-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10.5px;
+    font-weight: 900;
+    color: #34ca73;
+    letter-spacing: 0.5px;
+    background: rgba(52, 202, 115, 0.14);
+    padding: 4px 9px;
+    border-radius: 12px;
+    border: 1px solid rgba(52, 202, 115, 0.35);
+    white-space: nowrap;
+}
+
+.live-dot-pulse {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #34ca73;
+    box-shadow: 0 0 8px #34ca73;
+    animation: liveDotBlink 1.4s infinite;
+}
+
+@keyframes liveDotBlink {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+/* Tela Principal do Player */
+.stream-player-container {
+    min-height: 380px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #08060f;
+    position: relative;
+}
+
+/* Canal 1: Transmissão Tática Broadcast HD */
+.stream-tactical-screen {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.stream-overlay-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.3) 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.soh-team {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.soh-logo {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+.soh-name {
+    font-size: 13.5px;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: 0.4px;
+}
+
+.soh-score-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 4px 14px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 196, 0, 0.4);
+}
+
+.soh-score {
+    font-size: 22px;
+    font-weight: 900;
+    font-family: 'JetBrains Mono', monospace;
+    color: #ffffff;
+    letter-spacing: 2px;
+}
+
+.soh-clock {
+    font-size: 11px;
+    font-weight: 800;
+    color: #ffc400;
+}
+
+.soh-clock.live {
+    color: #ff3d57;
+}
+
+.stream-tactical-body {
+    flex: 1;
+    min-height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at center, #1a3a2a 0%, #0d1e15 100%);
+    padding: 20px;
+    position: relative;
+}
+
+.stream-animated-broadcast {
+    width: 100%;
+    max-width: 600px;
+}
+
+.stream-radar-pitch-bg {
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    position: relative;
+    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8);
+}
+
+.stream-live-event-banner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.sleb-zone {
+    display: inline-block;
+    background: linear-gradient(135deg, #ff3d57 0%, #C9302C 100%);
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 900;
+    padding: 6px 16px;
+    border-radius: 20px;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 15px rgba(255, 61, 87, 0.5);
+    animation: livePulseGlow 2s infinite;
+}
+
+.sleb-sub {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.9);
+    max-width: 480px;
+    line-height: 1.5;
+}
+
+.sleb-player {
+    font-size: 12px;
+    font-weight: 800;
+    color: #ffc400;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 4px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 196, 0, 0.4);
+}
+
+.stream-tactical-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 14px;
+    background: #110c22;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 11.5px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.stf-stats-pill {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.stf-stats-pill strong {
+    color: var(--brand-gold);
+}
+
+.stf-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.stream-quality-tag {
+    font-size: 10.5px;
+    color: #34ca73;
+    font-weight: 800;
+    background: rgba(52, 202, 115, 0.15);
+    padding: 3px 8px;
+    border-radius: 4px;
+}
+
+.stf-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.stf-btn:hover {
+    background: var(--brand-purple);
+    color: var(--brand-gold);
+}
+
+/* Cartões de Portais Externos (Multicanais, Futemax, CazéTV) */
+.stream-external-portal-card {
+    padding: 28px 20px;
+    text-align: center;
+    width: 100%;
+    max-width: 580px;
+    background: linear-gradient(135deg, #1b1233 0%, #120b24 100%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    margin: 16px;
+}
+
+.stream-external-portal-card.multicanais-theme {
+    border-color: rgba(255, 196, 0, 0.4);
+}
+
+.stream-external-portal-card.futemax-theme {
+    border-color: rgba(255, 61, 87, 0.4);
+}
+
+.sepc-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--brand-purple);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 900;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+}
+
+.sepc-match-title {
+    font-size: 18px;
+    font-weight: 900;
+    color: #ffffff;
+    margin-bottom: 6px;
+}
+
+.sepc-status {
+    font-size: 12px;
+    color: #34ca73;
+    font-weight: 800;
+    margin-bottom: 12px;
+}
+
+.sepc-desc {
+    font-size: 12.5px;
+    color: rgba(255, 255, 255, 0.75);
+    line-height: 1.5;
+    margin-bottom: 18px;
+}
+
+.sepc-actions {
+    margin-bottom: 14px;
+}
+
+.sepc-main-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #ffc400 0%, #e0aa00 100%);
+    color: #151026;
+    border: none;
+    font-size: 14px;
+    font-weight: 900;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(255, 196, 0, 0.4);
+    transition: all 0.2s ease;
+}
+
+.sepc-main-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255, 196, 0, 0.6);
+}
+
+.sepc-main-btn.multi {
+    background: linear-gradient(135deg, #ffc400 0%, #ff9100 100%);
+}
+
+.sepc-main-btn.fute {
+    background: linear-gradient(135deg, #ff3d57 0%, #C9302C 100%);
+    color: #ffffff;
+    box-shadow: 0 6px 18px rgba(255, 61, 87, 0.45);
+}
+
+.sepc-main-btn.fute:hover {
+    box-shadow: 0 8px 24px rgba(255, 61, 87, 0.65);
+}
+
+.sepc-main-btn.caze {
+    background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+    color: #ffffff;
+    box-shadow: 0 6px 18px rgba(255, 0, 0, 0.4);
+}
+
+.sepc-server-pills {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.sepc-server-pill {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.sepc-server-pill:hover,
+.sepc-server-pill.active {
+    background: var(--brand-purple);
+    border-color: var(--brand-gold);
+    color: #ffffff;
+}
+
+.sepc-footer-note {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+/* Player Vídeo HTML5 (Gols & Lances HD MP4) */
+.stream-video-screen {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: #000000;
+}
+
+.stream-html5-player {
+    width: 100%;
+    max-height: 420px;
+    object-fit: contain;
+    background: #000000;
+    outline: none;
+}
+
+.stream-video-title-bar {
+    padding: 8px 12px;
+    background: #110c22;
+    font-size: 12px;
+    font-weight: 800;
+    color: #ffffff;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Guia "Onde Assistir na TV & Streaming Oficial" */
+.stream-tv-guide {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: #140e26;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.tv-guide-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.tv-guide-badges {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.tv-badge {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 4px;
+}
+
+.tv-direct-links {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.direct-stream-link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.direct-stream-link-btn.multi {
+    background: #ffc400;
+    color: #151026;
+}
+
+.direct-stream-link-btn.fute {
+    background: #ff3d57;
+    color: #ffffff;
+}
+
+.direct-stream-link-btn.caze {
+    background: #ff0000;
+    color: #ffffff;
+}
+
+.direct-stream-link-btn:hover {
+    transform: translateY(-1px);
+    opacity: 0.92;
+}
+
+/* ==========================================================================
+   COMPROVANTE DIGITAL OFICIAL (ESTILO RECIBO TÉRMICO DE CAMBISTA)
+   ========================================================================== */
+
+.thermal-receipt-card {
+    background: #ffffff;
+    color: #1a1a1a;
+    border-radius: 8px;
+    padding: 16px 18px;
+    font-family: 'JetBrains Mono', monospace;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    border: 2px dashed #bbb;
+    position: relative;
+}
+
+.thermal-header {
+    text-align: center;
+    border-bottom: 2px dashed #999;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+}
+
+.thermal-logo {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    margin-bottom: 4px;
+}
+
+.thermal-brand-title {
+    font-size: 15px;
+    font-weight: 900;
+    color: #2b1f50;
+    letter-spacing: 0.5px;
+}
+
+.thermal-sub-meta {
+    font-size: 11px;
+    color: #666;
+    margin-top: 2px;
+}
+
+.thermal-date-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10.5px;
+    color: #444;
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px dotted #ccc;
+}
+
+/* Faixa de Status Térmica */
+.thermal-status-ribbon {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 900;
+    padding: 6px 10px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+}
+
+.thermal-status-ribbon.validated {
+    background: #e6f9ed;
+    color: #187741;
+    border: 1px solid #34ca73;
+}
+
+.thermal-status-ribbon.pending {
+    background: #fff8e1;
+    color: #8c6b00;
+    border: 1px solid #ffc400;
+}
+
+/* Caixa do Código PIN em Destaque */
+.thermal-pin-box {
+    text-align: center;
+    background: #2b1f50;
+    color: #ffffff;
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.thermal-pin-label {
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #ffc400;
+    font-weight: 800;
+    margin-bottom: 2px;
+}
+
+.thermal-pin-number {
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: 4px;
+    color: #ffffff;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.thermal-pin-sub {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.75);
+    margin-top: 2px;
+}
+
+/* Código de Barras Digital */
+.thermal-barcode-box {
+    text-align: center;
+    margin-bottom: 14px;
+    padding: 4px 0;
+}
+
+.thermal-barcode-lines {
+    height: 38px;
+    background: repeating-linear-gradient(
+        90deg,
+        #111 0px,
+        #111 2px,
+        #fff 2px,
+        #fff 4px,
+        #111 4px,
+        #111 7px,
+        #fff 7px,
+        #fff 9px,
+        #111 9px,
+        #111 11px,
+        #fff 11px,
+        #fff 14px,
+        #111 14px,
+        #111 18px,
+        #fff 18px,
+        #fff 20px
+    );
+    border-radius: 2px;
+    margin: 0 auto;
+    width: 85%;
+}
+
+.thermal-barcode-digits {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: #555;
+    margin-top: 3px;
+}
+
+/* Lista de Palpites Selecionados */
+.thermal-selections-list {
+    margin-bottom: 12px;
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.thermal-sec-title {
+    font-size: 10px;
+    font-weight: 800;
+    color: #777;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 4px;
+    margin-bottom: 6px;
+}
+
+.thermal-selection-item {
+    padding: 6px 0;
+    border-bottom: 1px dotted #e0e0e0;
+}
+
+.thermal-selection-item:last-child {
+    border-bottom: none;
+}
+
+.tsi-row-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 800;
+    color: #111;
+}
+
+.tsi-index {
+    color: #888;
+    margin-right: 4px;
+}
+
+.tsi-odd {
+    color: #2b1f50;
+    font-weight: 900;
+}
+
+.tsi-row-sub {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10.5px;
+    color: #666;
+    margin-top: 2px;
+}
+
+/* Totais do Recibo Térmico */
+.thermal-totals-box {
+    background: #f7f7f9;
+    border: 1px solid #e2e2e8;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+}
+
+.thermal-tot-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11.5px;
+    color: #444;
+    margin-bottom: 4px;
+}
+
+.thermal-tot-row.highlight {
+    padding-top: 6px;
+    margin-top: 6px;
+    border-top: 1px dashed #bbb;
+    font-size: 13px;
+    color: #111;
+}
+
+.thermal-payout {
+    font-size: 16px;
+    font-weight: 900;
+    color: #187741;
+}
+
+.thermal-rules-footer {
+    font-size: 9.5px;
+    color: #777;
+    text-align: center;
+    line-height: 1.4;
+    border-top: 1px dashed #ccc;
+    padding-top: 8px;
+    margin-bottom: 14px;
+}
+
+/* Ações Térmicas */
+.thermal-action-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.thermal-act-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-weight: 800;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s ease;
+}
+
+.thermal-act-btn.whatsapp {
+    background: #25d366;
+    color: #ffffff;
+    font-size: 13.5px;
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.35);
+}
+
+.thermal-act-btn.whatsapp:hover {
+    background: #20ba59;
+    transform: translateY(-1px);
+}
+
+.thermal-act-btn.copy {
+    background: #2b1f50;
+    color: #ffc400;
+}
+
+.thermal-act-btn.copy:hover {
+    background: #3b2a6f;
+}
+
+.thermal-act-btn.print {
+    background: #e9ecef;
+    color: #333;
+}
+
+.thermal-act-btn.print:hover {
+    background: #dde2e6;
+}
+
+/* Ações Rápidas no Card de Bilhete do Betslip */
+.history-act-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-size: 10.5px;
+    font-weight: 800;
+    padding: 5px 6px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.history-act-btn.whatsapp {
+    background: rgba(37, 211, 102, 0.18);
+    border: 1px solid rgba(37, 211, 102, 0.5);
+    color: #25d366;
+}
+
+.history-act-btn.whatsapp:hover {
+    background: #25d366;
+    color: #ffffff;
+}
+
+.history-act-btn.copy {
+    background: rgba(255, 196, 0, 0.16);
+    border: 1px solid rgba(255, 196, 0, 0.45);
+    color: #ffc400;
+}
+
+.history-act-btn.copy:hover {
+    background: #ffc400;
+    color: #151026;
+}
+
+.history-act-btn.receipt {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+}
+
+.history-act-btn.receipt:hover {
+    background: var(--brand-purple);
+}
+
+/* ==========================================================================
+   ESTILOS DE IMPRESSÃO (@MEDIA PRINT)
+   ========================================================================== */
+@media print {
+    body * {
+        visibility: hidden !important;
+    }
+
+    #ticket-receipt-modal,
+    #ticket-receipt-modal * {
+        visibility: visible !important;
+    }
+
+    #ticket-receipt-modal {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        background: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: block !important;
+    }
+
+    .modal-card {
+        box-shadow: none !important;
+        border: none !important;
+        max-width: 380px !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+    }
+
+    .modal-header,
+    .thermal-action-grid,
+    .modal-close {
+        display: none !important;
+    }
+
+    .thermal-receipt-card {
+        border: 1px dashed #333 !important;
+        box-shadow: none !important;
+    }
+}
+
 
 
 
