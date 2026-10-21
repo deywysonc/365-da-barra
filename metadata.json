@@ -1,0 +1,6 @@
+{
+  "name": "365 DA BARRA — Apostas Esportivas & Arena Ao Vivo",
+  "description": "Plataforma oficial de apostas esportivas 365 DA BARRA com cotações em tempo real, radar tático 3D, mais de 380 mercados por partida, geração de pré-bilhete PIN e gestão de banca.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
