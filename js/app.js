@@ -1183,20 +1183,149 @@ function toggleLiveStreamView() {
 }
 
 function switchStreamChannel(channelId, btnEl = null) {
-    window.BetProData.activeStreamChannel = channelId;
+    const norm = normalizeChannelId(channelId);
+    window.BetProData.activeStreamChannel = norm;
+
     const pillsContainer = document.querySelector('.stream-channel-pills');
     if (pillsContainer) {
         pillsContainer.querySelectorAll('.stream-ch-btn').forEach(b => b.classList.remove('active'));
     }
-    const targetBtn = btnEl || document.getElementById(`ch-btn-${channelId}`);
+    const targetBtn = btnEl || document.getElementById('ch-btn-' + norm) || document.getElementById('ch-btn-' + channelId);
     if (targetBtn) targetBtn.classList.add('active');
+
+    const chObj = IPTV_CHANNELS.find(c => c.id === norm);
+    const indicator = document.getElementById('iptv-ch-indicator');
+    if (indicator && chObj) {
+        indicator.innerText = 'CH ' + chObj.num;
+    }
 
     const m = window.BetProData.matches.find(x => x.id === window.BetProData.selectedMatchId);
     if (m) updateLiveStreamDisplay(m);
 }
 
+const IPTV_CHANNELS = [
+    { id: 'cazetv', num: 1, name: 'CazéTV HD', icon: 'fab fa-youtube', color: '#ff0000', type: 'youtube' },
+    { id: 'goat', num: 2, name: 'Canal GOAT', icon: 'fab fa-youtube', color: '#ffc400', type: 'youtube' },
+    { id: 'premiere', num: 3, name: 'Premiere HD', icon: 'fas fa-tv', color: '#34ca73', type: 'hls' },
+    { id: 'sportv', num: 4, name: 'SporTV HD', icon: 'fas fa-satellite-dish', color: '#00b0ff', type: 'hls' },
+    { id: 'espn', num: 5, name: 'ESPN / Disney+', icon: 'fas fa-bolt', color: '#ff3d57', type: 'hls' },
+    { id: 'tatico', num: 6, name: 'Tático TV 365', icon: 'fas fa-crosshairs', color: '#ffc400', type: 'tactical' },
+    { id: 'highlights', num: 7, name: 'Gols & Lances HD', icon: 'fas fa-film', color: '#a855f7', type: 'mp4' }
+];
+
+let currentHlsInstance = null;
 let currentCazeSubChannel = 'cazetv';
 let isStadiumAudioActive = false;
+
+function normalizeChannelId(ch) {
+    if (ch === 'ch1') return 'tatico';
+    if (ch === 'multicanais') return 'premiere';
+    if (ch === 'futemax') return 'sportv';
+    if (ch === 'espn_video') return 'highlights';
+    return ch || 'cazetv';
+}
+
+function loadHlsStream(videoEl, m3u8Url, fallbackUrl, match) {
+    if (!videoEl) return;
+    if (currentHlsInstance) {
+        try { currentHlsInstance.destroy(); } catch(e) {}
+        currentHlsInstance = null;
+    }
+
+    let hasFallenBack = false;
+    const onFallback = () => {
+        if (hasFallenBack) return;
+        hasFallenBack = true;
+        if (fallbackUrl) {
+            console.log('IPTV: Alternando para stream oficial reserva HD.');
+            videoEl.src = fallbackUrl;
+            videoEl.play().catch(() => {});
+            const ticker = document.querySelector('.sb-event-ticker');
+            if (ticker) ticker.innerText = '⚡ SINAL OFICIAL RESERVA ATIVADO (HD)';
+        }
+    };
+
+    if (window.Hls && window.Hls.isSupported()) {
+        try {
+            const hls = new window.Hls({
+                enableWorker: true,
+                lowLatencyMode: true,
+                backBufferLength: 60
+            });
+            currentHlsInstance = hls;
+            hls.loadSource(m3u8Url);
+            hls.attachMedia(videoEl);
+            hls.on(window.Hls.Events.MANIFEST_PARSED, () => {
+                videoEl.play().catch(() => {});
+            });
+            hls.on(window.Hls.Events.ERROR, (event, data) => {
+                if (data.fatal) {
+                    switch (data.type) {
+                        case window.Hls.ErrorTypes.NETWORK_ERROR:
+                            console.warn('IPTV HLS: Rede/CORS. Fallback.');
+                            hls.destroy();
+                            currentHlsInstance = null;
+                            onFallback();
+                            break;
+                        case window.Hls.ErrorTypes.MEDIA_ERROR:
+                            hls.recoverMediaError();
+                            break;
+                        default:
+                            hls.destroy();
+                            currentHlsInstance = null;
+                            onFallback();
+                            break;
+                    }
+                }
+            });
+        } catch(e) {
+            onFallback();
+        }
+    } else if (videoEl.canPlayType && videoEl.canPlayType('application/vnd.apple.mpegurl')) {
+        videoEl.src = m3u8Url;
+        videoEl.addEventListener('error', onFallback, { once: true });
+        videoEl.play().catch(() => {});
+    } else {
+        onFallback();
+    }
+}
+
+function iptvZapNext() {
+    const active = normalizeChannelId(window.BetProData.activeStreamChannel || 'cazetv');
+    const idx = IPTV_CHANNELS.findIndex(c => c.id === active);
+    const nextIdx = (idx + 1) % IPTV_CHANNELS.length;
+    switchStreamChannel(IPTV_CHANNELS[nextIdx].id);
+    showToast('📺 IPTV: Canal ' + IPTV_CHANNELS[nextIdx].num + ' • ' + IPTV_CHANNELS[nextIdx].name);
+}
+
+function iptvZapPrev() {
+    const active = normalizeChannelId(window.BetProData.activeStreamChannel || 'cazetv');
+    const idx = IPTV_CHANNELS.findIndex(c => c.id === active);
+    const prevIdx = (idx - 1 + IPTV_CHANNELS.length) % IPTV_CHANNELS.length;
+    switchStreamChannel(IPTV_CHANNELS[prevIdx].id);
+    showToast('📺 IPTV: Canal ' + IPTV_CHANNELS[prevIdx].num + ' • ' + IPTV_CHANNELS[prevIdx].name);
+}
+
+function openMatchDirectIPTV(matchId, ch = 'cazetv') {
+    openMatchCenter(matchId);
+    if (!window.BetProData.liveStreamActive) {
+        toggleLiveStreamView();
+    }
+    const m = window.BetProData.matches.find(x => x.id === matchId);
+    const preferredCh = (m && m.defaultIptvChannel) ? m.defaultIptvChannel : ch;
+    switchStreamChannel(preferredCh);
+
+    const stage = document.getElementById('livestream-stage');
+    if (stage) {
+        stage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    showToast('📺 Conectado ao Sinal IPTV Ao Vivo!');
+}
+
+function openMatchDirectStream(platform) {
+    switchStreamChannel(platform);
+    showToast('📺 Canal ' + platform.toUpperCase() + ' ativado direto no reprodutor!');
+}
 
 function toggleSoundEffects() {
     try {
@@ -1308,9 +1437,9 @@ function reloadStreamSignal() {
 function switchEmbeddedServer(serverName) {
     const video = document.querySelector('#stream-player-container video');
     const isSrv2 = serverName.includes('srv2') || serverName.includes('reserva');
-    showToast(`⚡ Conectado ao ${isSrv2 ? 'Servidor 2 (Mobile 720p)' : 'Servidor 1 (Full HD 1080p)'}!`);
+    showToast('⚡ Conectado ao ' + (isSrv2 ? 'Servidor 2 (Mobile 720p)' : 'Servidor 1 (Full HD 1080p)') + '!');
     document.querySelectorAll('.scs-srv-btn').forEach(btn => btn.classList.remove('active'));
-    if (event && event.target) event.target.classList.add('active');
+    if (typeof event !== 'undefined' && event && event.target) event.target.classList.add('active');
     if (video) {
         video.currentTime = 0;
         video.play().catch(() => {});
@@ -1321,13 +1450,7 @@ function switchCazeSubChannel(sub) {
     currentCazeSubChannel = sub;
     const m = window.BetProData.matches.find(x => x.id === window.BetProData.selectedMatchId);
     if (m) updateLiveStreamDisplay(m);
-    showToast(`📺 Alternando para sinal: ${sub === 'goat' ? 'Canal GOAT' : 'CazéTV'}...`);
-}
-
-function openMatchDirectStream(platform) {
-    // Redirecionamento zero: muda o sinal diretamente no reprodutor da página
-    switchStreamChannel(platform);
-    showToast(`📺 Canal ${platform.toUpperCase()} ativado direto no reprodutor!`);
+    showToast('📺 Alternando para sinal: ' + (sub === 'goat' ? 'Canal GOAT' : 'CazéTV') + '...');
 }
 
 function updateLiveStreamDisplay(match) {
@@ -1335,10 +1458,10 @@ function updateLiveStreamDisplay(match) {
     const container = document.getElementById('stream-player-container');
     if (!container) return;
 
-    const channel = window.BetProData.activeStreamChannel || 'ch1';
+    const rawChannel = window.BetProData.activeStreamChannel || 'cazetv';
+    const channel = normalizeChannelId(rawChannel);
     const broadcastBadgesContainer = document.getElementById('stream-broadcast-badges');
 
-    // Atualiza canais oficiais de TV
     if (broadcastBadgesContainer) {
         const defaultChannels = match.broadcastChannels && match.broadcastChannels.length > 0
             ? match.broadcastChannels
@@ -1358,8 +1481,7 @@ function updateLiveStreamDisplay(match) {
     const fallbackVideo = 'https://espnmedia-cdn.akamaized.net/espn/media/16x9/2026/1018/Hu_261018_BR_futebol_PLMatchPackage_bournemouth_x_sunderland_gols_final_game_highlight/Hu_261018_BR_futebol_PLMatchPackage_bournemouth_x_sunderland_gols_final_game_highlight.mp4';
     const activeVideoSrc = match.videoHighlightUrl || fallbackVideo;
 
-    if (channel === 'ch1') {
-        // CANAL 1: TRANSMISSÃO TÁTICA HD E BROADCAST HUD COM AMBIENTE AO VIVO
+    if (channel === 'tatico') {
         container.innerHTML = `
             <div class="stream-tactical-screen">
                 <div class="stream-overlay-header">
@@ -1404,109 +1526,9 @@ function updateLiveStreamDisplay(match) {
                 </div>
             </div>
         `;
-    } else if (channel === 'multicanais') {
-        // CANAL 2: MULTICANAIS SINAL HD EMBUTIDO DIRETO NO SITE
-        container.innerHTML = `
-            <div class="stream-live-broadcast-screen multicanais-player">
-                <div class="stream-channel-subbar">
-                    <div class="scs-left">
-                        <span class="scs-badge"><i class="fas fa-bolt"></i> MULTICANAIS SINAL HD</span>
-                        <span class="scs-ping"><i class="fas fa-wifi"></i> 60fps • 1080p</span>
-                    </div>
-                    <div class="scs-right">
-                        <button class="scs-srv-btn active" onclick="switchEmbeddedServer('multi_srv1')">Servidor 1 (Full HD)</button>
-                        <button class="scs-srv-btn" onclick="switchEmbeddedServer('multi_srv2')">Servidor 2 (Mobile)</button>
-                        <button class="scs-srv-btn" onclick="reloadStreamSignal()"><i class="fas fa-sync-alt"></i> Recarregar</button>
-                    </div>
-                </div>
-
-                <div class="stream-video-viewport">
-                    <video class="stream-html5-player" id="stream-live-video" autoplay playsinline loop muted poster="banner.png">
-                        <source src="${activeVideoSrc}" type="video/mp4">
-                        Seu navegador não suporta reprodução direta.
-                    </video>
-
-                    <div class="stream-video-watermark">
-                        <img src="logo-365dabarra.png" alt="365 DA BARRA">
-                        <span>MULTICANAIS • 365 DA BARRA HD</span>
-                    </div>
-
-                    <div class="stream-broadcast-hud-overlay">
-                        <div class="sb-scorebug">
-                            <span class="sb-team">${match.shortA || teamA}</span>
-                            <span class="sb-score">${match.scoreA || 0}</span>
-                            <span class="sb-divider">-</span>
-                            <span class="sb-score">${match.scoreB || 0}</span>
-                            <span class="sb-team">${match.shortB || teamB}</span>
-                            <span class="sb-clock ${isLive ? 'live' : ''}">${isLive ? '🔴 ' : ''}${clockStr}</span>
-                        </div>
-                        <div class="sb-event-ticker">${match.state ? (match.state.actionText || '⚡ EM JOGO') : 'AO VIVO'}</div>
-                    </div>
-                </div>
-
-                <div class="stream-player-bottom-controls">
-                    <button class="spc-btn" onclick="toggleStreamPlayPause()" title="Play / Pausa"><i class="fas fa-pause" id="spc-play-icon"></i></button>
-                    <button class="spc-btn" onclick="toggleStreamMute()" title="Ativar Áudio"><i class="fas fa-volume-mute" id="spc-vol-icon"></i></button>
-                    <span class="spc-live-text"><span class="live-dot-pulse"></span> SINAL MULTICANAIS AO VIVO</span>
-                    <div style="flex:1;"></div>
-                    <button class="spc-btn" onclick="toggleStreamCinemaMode()" title="Modo Cinema"><i class="fas fa-expand-arrows-alt"></i></button>
-                    <button class="spc-btn" onclick="toggleStreamFullscreen()" title="Tela Cheia"><i class="fas fa-expand"></i></button>
-                </div>
-            </div>
-        `;
-    } else if (channel === 'futemax') {
-        // CANAL 3: FUTEMAX SINAL HD EMBUTIDO DIRETO NO SITE
-        container.innerHTML = `
-            <div class="stream-live-broadcast-screen futemax-player">
-                <div class="stream-channel-subbar">
-                    <div class="scs-left">
-                        <span class="scs-badge" style="background:#ff3d57;"><i class="fas fa-satellite-dish"></i> FUTEMAX SINAL HD</span>
-                        <span class="scs-ping"><i class="fas fa-wifi"></i> 60fps • 1080p</span>
-                    </div>
-                    <div class="scs-right">
-                        <button class="scs-srv-btn active" onclick="switchEmbeddedServer('fute_srv1')">Sinal Principal (HD)</button>
-                        <button class="scs-srv-btn" onclick="switchEmbeddedServer('fute_srv2')">Sinal 2 (Reserva)</button>
-                        <button class="scs-srv-btn" onclick="reloadStreamSignal()"><i class="fas fa-sync-alt"></i> Recarregar</button>
-                    </div>
-                </div>
-
-                <div class="stream-video-viewport">
-                    <video class="stream-html5-player" autoplay playsinline loop muted poster="banner.png">
-                        <source src="${activeVideoSrc}" type="video/mp4">
-                        Seu navegador não suporta reprodução direta.
-                    </video>
-
-                    <div class="stream-video-watermark">
-                        <img src="logo-365dabarra.png" alt="365 DA BARRA">
-                        <span>FUTEMAX • 365 DA BARRA HD</span>
-                    </div>
-
-                    <div class="stream-broadcast-hud-overlay">
-                        <div class="sb-scorebug">
-                            <span class="sb-team">${match.shortA || teamA}</span>
-                            <span class="sb-score">${match.scoreA || 0}</span>
-                            <span class="sb-divider">-</span>
-                            <span class="sb-score">${match.scoreB || 0}</span>
-                            <span class="sb-team">${match.shortB || teamB}</span>
-                            <span class="sb-clock ${isLive ? 'live' : ''}">${isLive ? '🔴 ' : ''}${clockStr}</span>
-                        </div>
-                        <div class="sb-event-ticker">${match.state ? (match.state.actionText || '⚡ EM JOGO') : 'AO VIVO'}</div>
-                    </div>
-                </div>
-
-                <div class="stream-player-bottom-controls">
-                    <button class="spc-btn" onclick="toggleStreamPlayPause()" title="Play / Pausa"><i class="fas fa-pause"></i></button>
-                    <button class="spc-btn" onclick="toggleStreamMute()" title="Ativar Áudio"><i class="fas fa-volume-mute"></i></button>
-                    <span class="spc-live-text"><span class="live-dot-pulse"></span> SINAL FUTEMAX AO VIVO</span>
-                    <div style="flex:1;"></div>
-                    <button class="spc-btn" onclick="toggleStreamCinemaMode()" title="Modo Cinema"><i class="fas fa-expand-arrows-alt"></i></button>
-                    <button class="spc-btn" onclick="toggleStreamFullscreen()" title="Tela Cheia"><i class="fas fa-expand"></i></button>
-                </div>
-            </div>
-        `;
-    } else if (channel === 'cazetv') {
-        // CANAL 4: CAZÉTV / CANAL GOAT EMBUTIDO EM YOUTUBE CINEMA
-        const cazeSrc = currentCazeSubChannel === 'goat'
+    } else if (channel === 'cazetv' || channel === 'goat') {
+        const isGoat = (channel === 'goat');
+        const cazeSrc = isGoat
             ? 'https://www.youtube-nocookie.com/embed/live_stream?channel=UCW-X7s7v_V_s0xQjR7g0yWg&autoplay=1&mute=1&playsinline=1'
             : 'https://www.youtube-nocookie.com/embed/live_stream?channel=UC8Xb96zG491J5h3X457H8vQ&autoplay=1&mute=1&playsinline=1';
 
@@ -1514,17 +1536,19 @@ function updateLiveStreamDisplay(match) {
             <div class="stream-live-broadcast-screen caze-player">
                 <div class="stream-channel-subbar">
                     <div class="scs-left">
-                        <span class="scs-badge" style="background:#ff0000;"><i class="fab fa-youtube"></i> CAZÉTV & GOAT AO VIVO</span>
-                        <span class="scs-ping">📺 Transmissão Oficial Gratuita</span>
+                        <span class="scs-badge" style="background:${isGoat ? '#ffc400; color:#120e24' : '#ff0000'};">
+                            <i class="fab fa-youtube"></i> ${isGoat ? 'CANAL GOAT AO VIVO' : 'CAZÉTV AO VIVO'}
+                        </span>
+                        <span class="scs-ping">📺 Transmissão Oficial Gratuita HD</span>
                     </div>
                     <div class="scs-right">
-                        <button class="scs-srv-btn ${currentCazeSubChannel === 'cazetv' ? 'active' : ''}" onclick="switchCazeSubChannel('cazetv')">🔴 Sinal CazéTV</button>
-                        <button class="scs-srv-btn ${currentCazeSubChannel === 'goat' ? 'active' : ''}" onclick="switchCazeSubChannel('goat')">🟡 Sinal Canal GOAT</button>
+                        <button class="scs-srv-btn ${!isGoat ? 'active' : ''}" onclick="switchStreamChannel('cazetv')">🔴 Sinal CazéTV</button>
+                        <button class="scs-srv-btn ${isGoat ? 'active' : ''}" onclick="switchStreamChannel('goat')">🟡 Sinal Canal GOAT</button>
                     </div>
                 </div>
 
                 <div class="stream-video-viewport youtube-wrap">
-                    <iframe class="stream-cinema-iframe" src="${cazeSrc}" title="Transmissão CazéTV Ao Vivo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                    <iframe class="stream-cinema-iframe" src="${cazeSrc}" title="${isGoat ? 'Canal GOAT' : 'CazéTV'} Ao Vivo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
                     <div class="stream-broadcast-hud-overlay mini">
                         <div class="sb-scorebug">
@@ -1538,6 +1562,8 @@ function updateLiveStreamDisplay(match) {
                 </div>
 
                 <div class="stream-player-bottom-controls">
+                    <button class="spc-btn" onclick="iptvZapPrev()" title="Canal Anterior (IPTV)"><i class="fas fa-step-backward"></i></button>
+                    <button class="spc-btn" onclick="iptvZapNext()" title="Próximo Canal (IPTV)"><i class="fas fa-step-forward"></i></button>
                     <span class="spc-live-text"><span class="live-dot-pulse"></span> REPRODUZINDO AO VIVO NO SITE</span>
                     <div style="flex:1;"></div>
                     <button class="spc-btn" onclick="toggleStreamCinemaMode()" title="Modo Cinema"><i class="fas fa-expand-arrows-alt"></i></button>
@@ -1545,8 +1571,69 @@ function updateLiveStreamDisplay(match) {
                 </div>
             </div>
         `;
-    } else if (channel === 'espn_video') {
-        // CANAL 5: GOLS E MELHORES MOMENTOS (VÍDEO HD OFICIAL ESPN MP4)
+    } else if (channel === 'premiere' || channel === 'sportv' || channel === 'espn') {
+        const chTitles = {
+            premiere: { name: 'PREMIERE HD (IPTV)', color: '#34ca73', defStream: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8' },
+            sportv: { name: 'SPORTV HD (IPTV)', color: '#00b0ff', defStream: 'https://multiplatform-f.akamaihd.net/i/multi/will/bunny/big_buck_bunny_,640x360_400,640x360_700,640x360_1000,950x540_1500,.f4v.csmil/master.m3u8' },
+            espn: { name: 'ESPN / DISNEY+ HD (IPTV)', color: '#ff3d57', defStream: 'https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8' }
+        };
+        const cfg = chTitles[channel] || chTitles.premiere;
+        const targetM3u8 = match.customIptvUrl || cfg.defStream;
+
+        container.innerHTML = `
+            <div class="stream-live-broadcast-screen iptv-hls-player">
+                <div class="stream-channel-subbar">
+                    <div class="scs-left">
+                        <span class="scs-badge" style="background:${cfg.color};"><i class="fas fa-satellite-dish"></i> ${cfg.name}</span>
+                        <span class="scs-ping"><i class="fas fa-wifi"></i> 60fps • 1080p HLS</span>
+                    </div>
+                    <div class="scs-right">
+                        <button class="scs-srv-btn active" onclick="switchEmbeddedServer('iptv_srv1')">Sinal Principal (HD)</button>
+                        <button class="scs-srv-btn" onclick="switchEmbeddedServer('iptv_srv2')">Sinal Reserva</button>
+                        <button class="scs-srv-btn" onclick="reloadStreamSignal()"><i class="fas fa-sync-alt"></i> Recarregar</button>
+                    </div>
+                </div>
+
+                <div class="stream-video-viewport">
+                    <video class="stream-html5-player" id="stream-live-video" autoplay playsinline loop muted poster="banner.png">
+                        <source src="${activeVideoSrc}" type="video/mp4">
+                        Seu navegador não suporta reprodução direta.
+                    </video>
+
+                    <div class="stream-video-watermark">
+                        <img src="logo-365dabarra.png" alt="365 DA BARRA">
+                        <span>365 DA BARRA • ${cfg.name}</span>
+                    </div>
+
+                    <div class="stream-broadcast-hud-overlay">
+                        <div class="sb-scorebug">
+                            <span class="sb-team">${match.shortA || teamA}</span>
+                            <span class="sb-score">${match.scoreA || 0}</span>
+                            <span class="sb-divider">-</span>
+                            <span class="sb-score">${match.scoreB || 0}</span>
+                            <span class="sb-team">${match.shortB || teamB}</span>
+                            <span class="sb-clock ${isLive ? 'live' : ''}">${isLive ? '🔴 ' : ''}${clockStr}</span>
+                        </div>
+                        <div class="sb-event-ticker">${match.state ? (match.state.actionText || '⚡ EM JOGO') : 'AO VIVO'}</div>
+                    </div>
+                </div>
+
+                <div class="stream-player-bottom-controls">
+                    <button class="spc-btn" onclick="iptvZapPrev()" title="Canal Anterior (IPTV)"><i class="fas fa-step-backward"></i></button>
+                    <button class="spc-btn" onclick="toggleStreamPlayPause()" title="Play / Pausa"><i class="fas fa-pause" id="spc-play-icon"></i></button>
+                    <button class="spc-btn" onclick="toggleStreamMute()" title="Ativar Áudio"><i class="fas fa-volume-mute" id="spc-vol-icon"></i></button>
+                    <button class="spc-btn" onclick="iptvZapNext()" title="Próximo Canal (IPTV)"><i class="fas fa-step-forward"></i></button>
+                    <span class="spc-live-text"><span class="live-dot-pulse"></span> SINAL ${cfg.name}</span>
+                    <div style="flex:1;"></div>
+                    <button class="spc-btn" onclick="toggleStreamCinemaMode()" title="Modo Cinema"><i class="fas fa-expand-arrows-alt"></i></button>
+                    <button class="spc-btn" onclick="toggleStreamFullscreen()" title="Tela Cheia"><i class="fas fa-expand"></i></button>
+                </div>
+            </div>
+        `;
+
+        const videoEl = document.getElementById('stream-live-video');
+        loadHlsStream(videoEl, targetM3u8, activeVideoSrc, match);
+    } else if (channel === 'highlights') {
         container.innerHTML = `
             <div class="stream-live-broadcast-screen espn-player">
                 <div class="stream-channel-subbar">
@@ -1569,6 +1656,7 @@ function updateLiveStreamDisplay(match) {
         `;
     }
 }
+
 
 function filterNewsByLeague(slug, pillEl = null) {
     currentNewsLeagueFilter = slug;
@@ -1942,6 +2030,9 @@ function renderMatches() {
                             </div>
                             <div class="match-stadium-strip" style="font-size:10.5px; color:var(--text-muted); margin-top:3px; display:flex; align-items:center; flex-wrap:wrap; gap:6px;">
                                 <span>🏟️ ${match.stadium}</span>
+                                <button class="btn-iptv-quick" onclick="event.stopPropagation(); openMatchDirectIPTV(${match.id})" title="Assistir Transmissão Ao Vivo IPTV">
+                                    <i class="fas fa-tv"></i> IPTV AO VIVO
+                                </button>
                                 ${eventsStrip}
                             </div>
                         </div>
@@ -4194,7 +4285,90 @@ function renderAdminPanel() {
             </div>
         `).join('');
     }
+
+    const iptvList = document.getElementById('admin-iptv-matches-list');
+    if (iptvList) {
+        iptvList.innerHTML = window.BetProData.matches.map(m => `
+            <div style="display:flex; flex-direction:column; gap:6px; padding:10px 12px; background:var(--bg-panel); border:1px solid var(--border-color); border-radius:6px; margin-bottom:8px; font-size:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+                    <div>
+                        <strong style="font-size:13px; color:var(--text-main);">${m.teamA} x ${m.teamB}</strong>
+                        <span style="font-size:10.5px; color:var(--brand-gold); margin-left:6px;">(${m.league})</span>
+                        ${m.isLive ? '<span style="background:var(--brand-red-selected); color:#fff; font-size:9.5px; padding:1px 6px; border-radius:3px; margin-left:6px;">AO VIVO</span>' : ''}
+                    </div>
+                    <button class="btn-iptv-quick" onclick="openMatchDirectIPTV(${m.id})"><i class="fas fa-play"></i> Testar no Player</button>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 140px auto; gap:8px; align-items:center;">
+                    <input type="text" id="admin-iptv-url-${m.id}" class="stake-input" placeholder="URL IPTV (.m3u8, YouTube ou MP4)" value="${escJs(m.customIptvUrl || '')}">
+                    <select id="admin-iptv-ch-${m.id}" class="stake-input" style="padding:6px;">
+                        <option value="cazetv" ${(m.defaultIptvChannel === 'cazetv') ? 'selected' : ''}>CazéTV HD</option>
+                        <option value="goat" ${(m.defaultIptvChannel === 'goat') ? 'selected' : ''}>Canal GOAT</option>
+                        <option value="premiere" ${(m.defaultIptvChannel === 'premiere' || !m.defaultIptvChannel) ? 'selected' : ''}>Premiere HD</option>
+                        <option value="sportv" ${(m.defaultIptvChannel === 'sportv') ? 'selected' : ''}>SporTV HD</option>
+                        <option value="espn" ${(m.defaultIptvChannel === 'espn') ? 'selected' : ''}>ESPN/Disney+</option>
+                        <option value="tatico" ${(m.defaultIptvChannel === 'tatico') ? 'selected' : ''}>Tático 3D</option>
+                    </select>
+                    <button class="hero-cta" style="padding:7px 12px; font-size:11.5px; background:var(--brand-green-pin); color:#fff;" onclick="adminSaveMatchIptvUrl(${m.id})">💾 Salvar Sinal</button>
+                </div>
+            </div>
+        `).join('');
+    }
 }
+
+function adminSaveMatchIptvUrl(matchId) {
+    const input = document.getElementById(`admin-iptv-url-${matchId}`);
+    const select = document.getElementById(`admin-iptv-ch-${matchId}`);
+    if (!input) return;
+    const url = input.value.trim();
+    const ch = select ? select.value : 'premiere';
+
+    const m = window.BetProData.matches.find(x => x.id === matchId);
+    if (m) {
+        m.customIptvUrl = url;
+        m.defaultIptvChannel = ch;
+        try {
+            const saved = JSON.parse(localStorage.getItem('betpro_custom_iptv_streams') || '{}');
+            saved[matchId] = { url, ch };
+            localStorage.setItem('betpro_custom_iptv_streams', JSON.stringify(saved));
+        } catch(e) {}
+
+        showToast(`💾 Sinal salvo para ${m.teamA} x ${m.teamB}!`);
+        if (window.BetProData.selectedMatchId === matchId && window.BetProData.liveStreamActive) {
+            updateLiveStreamDisplay(m);
+        }
+    }
+}
+
+function restoreCustomIptvSettings() {
+    try {
+        const saved = JSON.parse(localStorage.getItem('betpro_custom_iptv_streams') || '{}');
+        Object.keys(saved).forEach(mId => {
+            const m = window.BetProData.matches.find(x => x.id == mId);
+            if (m) {
+                m.customIptvUrl = saved[mId].url;
+                m.defaultIptvChannel = saved[mId].ch;
+            }
+        });
+    } catch(e) {}
+}
+
+window.addEventListener('keydown', (e) => {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT')) return;
+    if (!window.BetProData.liveStreamActive) return;
+
+    if (e.key === 'ArrowRight' || e.key === 'n' || e.key === 'N') {
+        iptvZapNext();
+    } else if (e.key === 'ArrowLeft' || e.key === 'p' || e.key === 'P') {
+        iptvZapPrev();
+    } else if (e.key >= '1' && e.key <= '7') {
+        const num = parseInt(e.key);
+        const ch = IPTV_CHANNELS.find(c => c.num === num);
+        if (ch) {
+            switchStreamChannel(ch.id);
+            showToast(`📺 IPTV: Canal ${ch.num} • ${ch.name}`);
+        }
+    }
+});
 
 function checkPinTicket() {
     const pinInput = document.getElementById('check-pin-input');
@@ -4269,6 +4443,7 @@ setInterval(() => {
 }, 15000);
 
 window.addEventListener('DOMContentLoaded', () => {
+    restoreCustomIptvSettings();
     updateWalletUI();
     updateAdminBadge();
     updateSidebarMatchCounts();

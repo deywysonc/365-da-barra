@@ -7,7 +7,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@600;700&family=Roboto:wght@400;500;700;900&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link rel="stylesheet" href="css/styles.css?v=20261019_live4">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <link rel="stylesheet" href="css/styles.css?v=20261021_iptv1">
 </head>
 <body>
 
@@ -373,28 +374,45 @@
                     <div class="mc-arena-grid">
                         <!-- Coluna do Campo 3D Vetorial HD & Transmissão Ao Vivo -->
                         <div class="mc-pitch-column">
-                            <!-- PALCO DE TRANSMISSÃO AO VIVO (MULTICANAIS, FUTEMAX, CAZÉTV, MP4 HD) -->
+                            <!-- PALCO DE TRANSMISSÃO AO VIVO (IPTV, CAZÉTV, PREMIERE, SPORTV, TÁTICO HD) -->
                             <div class="livestream-stage" id="livestream-stage" style="display:none;">
                                 <div class="stream-channel-bar">
-                                    <div class="stream-channel-pills">
-                                        <button class="stream-ch-btn active" id="ch-btn-ch1" onclick="switchStreamChannel('ch1', this)">
-                                            <i class="fas fa-satellite-dish"></i> Canal 1 • Tático HD
+                                    <div class="stream-channel-pills" id="iptv-channel-pills">
+                                        <button class="stream-ch-btn active" id="ch-btn-cazetv" onclick="switchStreamChannel('cazetv', this)">
+                                            <i class="fab fa-youtube" style="color:#ff0000;"></i> CazéTV HD
                                         </button>
-                                        <button class="stream-ch-btn" id="ch-btn-multicanais" onclick="switchStreamChannel('multicanais', this)">
-                                            <i class="fas fa-bolt" style="color:#ffc400;"></i> Multicanais
+                                        <button class="stream-ch-btn" id="ch-btn-goat" onclick="switchStreamChannel('goat', this)">
+                                            <i class="fab fa-youtube" style="color:#ffc400;"></i> Canal GOAT
                                         </button>
-                                        <button class="stream-ch-btn" id="ch-btn-futemax" onclick="switchStreamChannel('futemax', this)">
-                                            <i class="fas fa-play" style="color:#ff3d57;"></i> Futemax
+                                        <button class="stream-ch-btn" id="ch-btn-premiere" onclick="switchStreamChannel('premiere', this)">
+                                            <i class="fas fa-tv" style="color:#34ca73;"></i> Premiere HD
                                         </button>
-                                        <button class="stream-ch-btn" id="ch-btn-cazetv" onclick="switchStreamChannel('cazetv', this)">
-                                            <i class="fab fa-youtube" style="color:#ff0000;"></i> CazéTV / GOAT
+                                        <button class="stream-ch-btn" id="ch-btn-sportv" onclick="switchStreamChannel('sportv', this)">
+                                            <i class="fas fa-satellite-dish" style="color:#00b0ff;"></i> SporTV HD
                                         </button>
-                                        <button class="stream-ch-btn" id="ch-btn-espn_video" onclick="switchStreamChannel('espn_video', this)">
-                                            <i class="fas fa-video" style="color:#34ca73;"></i> Gols & Lances HD
+                                        <button class="stream-ch-btn" id="ch-btn-espn" onclick="switchStreamChannel('espn', this)">
+                                            <i class="fas fa-bolt" style="color:#ff3d57;"></i> ESPN / Disney+
+                                        </button>
+                                        <button class="stream-ch-btn" id="ch-btn-tatico" onclick="switchStreamChannel('tatico', this)">
+                                            <i class="fas fa-crosshairs" style="color:#ffc400;"></i> Tático TV 365
+                                        </button>
+                                        <button class="stream-ch-btn" id="ch-btn-highlights" onclick="switchStreamChannel('highlights', this)">
+                                            <i class="fas fa-film" style="color:#a855f7;"></i> Gols & Lances HD
                                         </button>
                                     </div>
-                                    <div class="stream-signal-status">
-                                        <span class="live-dot-pulse"></span> <span id="stream-live-label">SINAL AO VIVO</span>
+                                    <div class="stream-bar-actions">
+                                        <div class="iptv-zapping-controls">
+                                            <button class="btn-iptv-zap" onclick="iptvZapPrev()" title="Canal Anterior (Atalho: Seta Esquerda)">
+                                                <i class="fas fa-step-backward"></i> Ant.
+                                            </button>
+                                            <span class="iptv-ch-number-badge" id="iptv-ch-indicator">CH 1</span>
+                                            <button class="btn-iptv-zap" onclick="iptvZapNext()" title="Próximo Canal (Atalho: Seta Direita)">
+                                                Próx. <i class="fas fa-step-forward"></i>
+                                            </button>
+                                        </div>
+                                        <div class="stream-signal-status">
+                                            <span class="live-dot-pulse"></span> <span id="stream-live-label">SINAL IPTV AO VIVO</span>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -913,7 +931,7 @@
             </div>
 
             <!-- 4. Cadastrar Novo Cliente Direto pelo Painel Admin -->
-            <div class="admin-section-box" style="margin-bottom:0;">
+            <div class="admin-section-box">
                 <h4 class="admin-section-title">➕ Cadastrar Novo Cliente Direto pelo Admin (Com Saldo Inicial)</h4>
                 <div style="display:grid; grid-template-columns:1.3fr 1fr 1fr auto; gap:8px;">
                     <input type="text" id="admin-new-client-name" class="stake-input" placeholder="Nome do Cliente">
@@ -921,6 +939,15 @@
                     <input type="number" id="admin-new-client-bal" class="stake-input" placeholder="Saldo Inicial (R$)">
                     <button class="btn-deposit" onclick="adminCreateNewClient()"><i class="fas fa-plus"></i> Cadastrar</button>
                 </div>
+            </div>
+
+            <!-- 5. Gerenciador de Canais & Transmissões IPTV -->
+            <div class="admin-section-box" style="margin-bottom:0;">
+                <h4 class="admin-section-title">📺 Gerenciador de Canais & Transmissões IPTV (Vincular .m3u8 às Partidas)</h4>
+                <p style="font-size:11.5px; color:var(--text-muted); margin-bottom:10px;">
+                    Vincule links diretos de transmissão (.m3u8 IPTV HLS, YouTube Live ou MP4) a qualquer partida cadastrada. Salvo instantaneamente na banca.
+                </p>
+                <div id="admin-iptv-matches-list"></div>
             </div>
         </div>
     </div>
@@ -949,9 +976,9 @@
 
     <div id="toast-container"></div>
 
-    <script src="js/data.js?v=20261019_live4"></script>
-    <script src="js/radar.js?v=20261019_live4"></script>
-    <script src="js/app.js?v=20261019_live4"></script>
+    <script src="js/data.js?v=20261021_iptv1"></script>
+    <script src="js/radar.js?v=20261021_iptv1"></script>
+    <script src="js/app.js?v=20261021_iptv1"></script>
     <script>
         window.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
